@@ -24,8 +24,16 @@ import { CompiledContract } from '@midnight-ntwrk/midnight-js-protocol/compact-j
 globalThis.WebSocket = WebSocket;
 
 // Must match the privateStateId used at deploy time so the CLI reconnects to
-// the same private state. The hello-world contract has no witnesses (empty state).
-const PRIVATE_STATE_ID = 'helloWorldPrivateState';
+// the same private state. The credential-registry contract has no witnesses
+// (empty state).
+const PRIVATE_STATE_ID = 'credentialRegistryPrivateState';
+
+/** Encode an arbitrary text tag as a 32-byte string (zero-padded). */
+function pad32(text: string): Uint8Array {
+  const out = new Uint8Array(32);
+  out.set(new TextEncoder().encode(text.trim()).slice(0, 32));
+  return out;
+}
 
 const { network, config: networkConfig } = resolveNetwork();
 const WALLET = getOrCreateWallet(network);
@@ -36,7 +44,7 @@ const SEED = WALLET.seed;
 }
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const zkConfigPath = path.resolve(__dirname, '..', 'contracts', 'managed', 'hello-world');
+const zkConfigPath = path.resolve(__dirname, '..', 'contracts', 'managed', 'credential-registry');
 
 // Load compiled contract
 const contractPath = path.join(zkConfigPath, 'contract', 'index.js');
@@ -47,9 +55,9 @@ if (!fs.existsSync(contractPath)) {
   process.exit(1);
 }
 
-const HelloWorld = await import(pathToFileURL(contractPath).href);
+const CredentialRegistry = await import(pathToFileURL(contractPath).href);
 
-const compiledContract = CompiledContract.make('hello-world', HelloWorld.Contract).pipe(
+const compiledContract = CompiledContract.make('credential-registry', CredentialRegistry.Contract).pipe(
   CompiledContract.withVacantWitnesses,
   CompiledContract.withCompiledFileAssets(zkConfigPath),
 );
@@ -85,7 +93,7 @@ async function createProviders(walletCtx: WalletContext) {
 
   return {
     privateStateProvider: levelPrivateStateProvider({
-      privateStateStoreName: 'hello-world-state',
+      privateStateStoreName: 'credential-registry-state',
       accountId,
       privateStoragePasswordProvider: () => privateStatePassword,
     }),
@@ -170,20 +178,27 @@ async function main() {
     let running = true;
     while (running) {
       console.log('─── Menu ───────────────────────────────────────────────────────');
-      console.log('  1. Store a message');
-      console.log('  2. Read current message');
-      console.log('  3. Check wallet balance');
-      console.log('  4. Exit\n');
+      console.log('  1. Register a credential');
+      console.log('  2. Read registry state (issuer / count / credential)');
+      console.log('  3. Revoke a credential');
+      console.log('  4. Check wallet balance');
+      console.log('  5. Exit\n');
 
       const choice = await rl.question('  Your choice: ');
 
       switch (choice.trim()) {
         case '1': {
-          const message = await rl.question('  Enter your message: ');
+          const secret = await rl.question('  Enter holder secret (any text; hashed locally): ');
+          const issuer = await rl.question('  Enter issuer ID (number): ');
+          const credId = await rl.question('  Enter credential ID (any text; hashed locally): ');
           console.log('\n  Submitting transaction (this may take 30-60 seconds)...');
           try {
-            const tx = await deployed.callTx.storeMessage(message);
-            console.log(`\n  ✅ Message stored: "${message}"`);
+            const tx = await deployed.callTx.registerCredential(
+              pad32(secret),
+              BigInt(issuer.trim() || '1'),
+              pad32(credId),
+            );
+            console.log(`\n  ✅ Credential registered (total: ${tx.public.blockHeight ? 'see read' : '?'})`);
             console.log(`  Transaction ID: ${tx.public.txId}`);
             console.log(`  Block height: ${tx.public.blockHeight}\n`);
           } catch (error) {
@@ -193,16 +208,35 @@ async function main() {
         }
 
         case '2': {
-          console.log('\n  Reading message from blockchain...');
+          console.log('\n  Reading registry from blockchain...');
           try {
             const contractState = await providers.publicDataProvider.queryContractState(deployment.address);
             if (contractState) {
-              const ledgerState = HelloWorld.ledger(contractState.data);
-              const message = Buffer.from(ledgerState.message).toString();
-              console.log(`\n  📋 Current message: "${message}"\n`);
+              const ledgerState = CredentialRegistry.ledger(contractState.data);
+              console.log(`\n  📋 Issuer:            ${ledgerState.issuer}`);
+              console.log(`  📋 Total credentials: ${ledgerState.totalCredentials}`);
+              const creds = Array.from(ledgerState.credentials, ([k, v]: [Uint8Array, Uint8Array]) =>
+                [Buffer.from(k).toString('hex').slice(0, 16) + '…', Buffer.from(v).toString('hex').slice(0, 16) + '…']);
+              console.log(`  📋 Credentials (id → commitment):`);
+              for (const [id, comm] of creds) console.log(`      ${id} → ${comm}`);
+              console.log('');
             } else {
-              console.log('\n  📋 No message found (contract state empty)\n');
+              console.log('\n  📋 No registry state found\n');
             }
+          } catch (error) {
+            console.error('\n  ❌ Failed:', error instanceof Error ? error.message : error);
+          }
+          break;
+        }
+
+        case '3': {
+          const credId = await rl.question('  Enter credential ID to revoke: ');
+          console.log('\n  Submitting revocation...');
+          try {
+            const tx = await deployed.callTx.revokeCredential(pad32(credId));
+            console.log(`\n  ✅ Credential revoked`);
+            console.log(`  Transaction ID: ${tx.public.txId}`);
+            console.log(`  Block height: ${tx.public.blockHeight}\n`);
           } catch (error) {
             console.error('\n  ❌ Failed:', error instanceof Error ? error.message : error);
           }
@@ -219,13 +253,23 @@ async function main() {
           break;
         }
 
-        case '4':
+        case '4': {
+          console.log('\n  Checking balance...');
+          const currentState = await walletCtx.wallet.waitForSyncedState();
+          const currentBalance = currentState.unshielded.balances[unshieldedToken().raw] ?? 0n;
+          const dustBalance = currentState.dust.balance(new Date());
+          console.log(`\n  tNight: ${currentBalance.toLocaleString()}`);
+          console.log(`  DUST: ${dustBalance.toLocaleString()}\n`);
+          break;
+        }
+
+        case '5':
           running = false;
           console.log('\n  👋 Goodbye!\n');
           break;
 
         default:
-          console.log('\n  ❌ Invalid choice. Please enter 1-4.\n');
+          console.log('\n  ❌ Invalid choice. Please enter 1-5.\n');
       }
     }
 

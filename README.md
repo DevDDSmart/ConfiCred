@@ -1,10 +1,20 @@
-# mn-demo
+# ConfiCred
 
-A Midnight Network smart contract scaffolded with create-mn-app.
+A Midnight Network smart contract project — zero-knowledge credentials on a
+privacy-preserving ledger. Built with the Compact language and scaffolded
+from create-mn-app.
+
+## Contract Address
+
+| Network  | Address |
+|----------|---------|
+| Preview  | _pending — deploy blocked on faucet funding_ |
+| Preprod  | _not yet deployed_ |
 
 ## Quick start
 
-Requirements: Node 22, Docker (with Compose v2), and the Compact compiler at the version pinned in `.compact-version` at the create-mn-app repo root (the version this project was scaffolded against).
+Requirements: Node 22+, Docker (with Compose v2), and the Compact compiler
+(this project was built against `compact 0.5.3`).
 
 > **On Windows:** the npm scripts in this project run natively (PowerShell or cmd.exe), but the Compact compiler publishes no native Windows binary — so `npm run compile`, and `npm run setup` which calls it, need to run inside WSL. See Midnight's [installation docs](https://docs.midnight.network/getting-started/installation).
 
@@ -17,8 +27,8 @@ npm run test:e2e
 `npm run setup` runs end-to-end with no prompts:
 
 1. `docker compose up -d --wait` — starts a local Midnight devnet (node, indexer, proof-server) and blocks until all three pass their healthchecks.
-2. `npm run compile` — compiles `contracts/hello-world.compact` to `contracts/managed/hello-world/`.
-3. `npm run deploy` — derives the genesis-seed wallet (NIGHT pre-minted), registers UTXOs for DUST generation, deploys the contract, writes `.midnight-state.json`.
+2. `npm run compile` — compiles the `.compact` contract in `contracts/` to `contracts/managed/`.
+3. `npm run deploy` — on local devnet: derives the genesis-seed wallet (NIGHT pre-minted), registers UTXOs for DUST generation, deploys the contract, writes `.midnight-state.json`. On `preview`/`preprod`: generates a BIP-39 wallet on first use, waits for faucet funding, then deploys.
 
 `npm run test:e2e` reconnects to the deployed contract and reads its ledger state. Exits 0 if the contract is live and indexable.
 
@@ -196,7 +206,7 @@ generated state.
 ## Project structure
 
 ```
-mn-demo/
+ConfiCred/
 ├── contracts/
 │   └── hello-world.compact     # Compact source
 ├── scripts/
@@ -217,9 +227,8 @@ mn-demo/
 
 ## Compact compiler version
 
-`.compact-version` at the create-mn-app repo root pinned the compiler
-version this project was scaffolded against. To upgrade your local
-compiler to that version:
+This project was built with `compact 0.5.3`. To pin or upgrade your local
+toolchain to a specific version:
 
 ```bash
 compact update <version>

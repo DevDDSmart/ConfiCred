@@ -58,3 +58,6 @@ temp/
 
 # Midnight wallet sync state (per-network serialized wallet state cache)
 .midnight-wallet-state/
+
+# Midnight SDK private-state store (created by level private state provider)
+midnight-level-db/

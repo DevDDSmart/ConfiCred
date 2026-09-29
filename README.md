@@ -8,7 +8,7 @@ from create-mn-app.
 
 | Network  | Address |
 |----------|---------|
-| Preview  | _pending — deploy blocked on faucet funding_ |
+| Preview  | `1e30c98f91c424e406029a62f8a4bf73aa1c5c22ab702173e5ba3142bcde8c28` |
 | Preprod  | _not yet deployed_ |
 
 ## Quick start

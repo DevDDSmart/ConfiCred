@@ -73,15 +73,11 @@ This DApp supports three networks:
 | Network | Wallet address | Faucet |
 |---|---|---|
 | `preview` | `mn_addr_preview18nmhwurcrqsrzsek73c8w2u8nkteegdfa8reddrnn8hjak6vgxhs2fc3w3` | [midnight-tmnight-preview.nethermind.dev](https://midnight-tmnight-preview.nethermind.dev) |
-| `preprod` | _generated on first use — run `npm run setup -- --network preprod`_ | [midnight-tmnight-preprod.nethermind.dev](https://midnight-tmnight-preprod.nethermind.dev) |
+| `preprod` | `mn_addr_preprod1kck3z2thjnlvsf8hj8qpsvejuf78c6yaxxwu0tza6ckx2tkfqvcqett2cv` | [midnight-tmnight-preprod.nethermind.dev](https://midnight-tmnight-preprod.nethermind.dev) |
 
-- The preview wallet above was created on 2026-09-29 and is the address to
-  fund when following the [funding steps](#funding-a-public-network-wallet).
-  Only the address is public — its seed and recovery phrase live in
-  `.midnight-state.json`, which is gitignored. Never commit them anywhere.
-- The preprod wallet does not exist yet: it is generated (with a printed
-  24-word recovery phrase) the first time you run any command against
-  `--network preprod`, then reused on every later run.
+- Both wallets were created on 2026-09-29. Only the addresses are public —
+  their seeds and recovery phrases live in `.midnight-state.json`, which is
+  gitignored. Never commit them anywhere.
 
 The active network is **sticky**: whichever network you last interacted
 with stays active until you switch. Any command run with `--network <name>`

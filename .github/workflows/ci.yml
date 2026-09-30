@@ -19,16 +19,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # The Compact compiler is a standalone binary released on GitHub
-      # (there is no npm package). Pin the same version the project is
-      # built against (0.5.3) and install it onto PATH.
-      - name: Install Compact compiler 0.5.3
+      # The Compact toolchain is distributed as a launcher binary on GitHub
+      # releases (there is no npm package). The launcher manages compiler
+      # versions under ~/.compact; `compact update <version>` downloads the
+      # requested compiler and sets it as the default. Pinned to 0.31.1 —
+      # the toolchain this project is built and tested against.
+      - name: Install Compact toolchain
         run: |
           curl -sL -o /tmp/compact.tar.xz \
             https://github.com/midnightntwrk/compact/releases/download/compact-v0.5.3/compact-x86_64-unknown-linux-musl.tar.xz
           tar -xJf /tmp/compact.tar.xz -C /tmp
           sudo mv /tmp/compact-x86_64-unknown-linux-musl/compact /usr/local/bin/compact
           sudo chmod +x /usr/local/bin/compact
+          compact update 0.31.1
           compact --version
 
       - name: Compile contract

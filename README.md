@@ -8,11 +8,11 @@
 
 ## Live Demo
 
-<!-- PASTE LIVE URL AFTER DEPLOYING FRONTEND -->
+**https://frontend-chi-sandy-60.vercel.app**
 
-Once deployed, open the URL, connect the **Lace** wallet extension (Midnight
-preprod network), and register a credential — the proof is generated locally
-in your browser and only the commitment of your secret lands on-chain.
+Open the URL, connect the **Lace** wallet extension (Midnight preprod
+network), and register a credential — the proof is generated locally in your
+browser and only the commitment of your secret lands on-chain.
 
 ## Contract Address
 

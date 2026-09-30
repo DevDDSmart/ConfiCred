@@ -1,5 +1,5 @@
 /**
- * End-to-end smoke check for mn-demo.
+ * End-to-end smoke check for ConfiCred.
  *
  * Reconnects to the deployed contract, reads its ledger state, and exits 0
  * on success. Used by `npm run test:e2e` and by the project's CI workflows.

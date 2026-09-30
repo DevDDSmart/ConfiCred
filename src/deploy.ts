@@ -140,7 +140,7 @@ async function createProviders(walletCtx: WalletContext) {
 
 async function main() {
   console.log('\n╔══════════════════════════════════════════════════════════════╗');
-  console.log(`║  Deploy mn-demo to ${network}`);
+  console.log(`║  Deploy ConfiCred to ${network}`);
   console.log('╚══════════════════════════════════════════════════════════════╝\n');
 
   const seed = SEED;
@@ -237,13 +237,25 @@ async function main() {
     // with N signatures matching N inputs. Do NOT call signRecipe again — that
     // would double-sign and the chain rejects with InputsSignaturesLengthMismatch
     // (Custom error 192). Matches upstream example-counter and example-bboard.
-    const recipe = await walletCtx.wallet.registerNightUtxosForDustGeneration(
-      unregisteredUtxos,
-      walletCtx.unshieldedKeystore.getPublicKey(),
-      (payload) => walletCtx.unshieldedKeystore.signData(payload),
-    );
-    const finalized = await walletCtx.wallet.finalizeRecipe(recipe);
-    await walletCtx.wallet.submitTransaction(finalized);
+    try {
+      const recipe = await walletCtx.wallet.registerNightUtxosForDustGeneration(
+        unregisteredUtxos,
+        walletCtx.unshieldedKeystore.getPublicKey(),
+        (payload) => walletCtx.unshieldedKeystore.signData(payload),
+      );
+      const finalized = await walletCtx.wallet.finalizeRecipe(recipe);
+      await walletCtx.wallet.submitTransaction(finalized);
+    } catch (err: any) {
+      // Registration rejection is not fatal: if DUST already exists (or the
+      // faucet pre-registered), the deploy can proceed. If it doesn't, the
+      // DUST wait below fails with a clear message instead of an unhandled
+      // crash losing the sync work. Also surfaced standalone via
+      // `npm run dust-register` for isolated retries.
+      const msg = err?.cause?.message || err?.message || String(err);
+      console.log(`  ⚠ Registration rejected: ${msg.split('\n')[0]}`);
+      console.log('  Continuing — deploy proceeds if DUST is already available.');
+      console.log('  (Standalone retry: npm run dust-register)\n');
+    }
   }
 
   if (dustState.dust.balance(new Date()) === 0n) {

@@ -9,7 +9,7 @@ from create-mn-app.
 | Network  | Address |
 |----------|---------|
 | Preview  | `1e30c98f91c424e406029a62f8a4bf73aa1c5c22ab702173e5ba3142bcde8c28` |
-| Preprod  | _not yet deployed_ |
+| Preprod  | `41a259a5c805adfc15885a02498c98b04acafd95bb0b0575398cffbe631b9989` |
 
 ## Quick start
 
@@ -143,6 +143,12 @@ On the first run with `--network preview` (or `preprod`):
 If the faucet is slow or the script times out, your seed is preserved.
 Re-run `npm run setup -- --network preview` once the funds land.
 
+> **First sync on public networks is slow.** A brand-new wallet syncing from
+> genesis on `preview`/`preprod` can take 1–2+ hours (CPU-bound merkle-tree
+> work, most of it even for an empty wallet). This happens exactly once per
+> network: the wallet's synced state is cached in `.midnight-wallet-state/`
+> and every later run resumes from it in seconds.
+
 ### Environment overrides
 
 These env vars override the active network's config (no per-network
@@ -194,7 +200,8 @@ generated state.
 | `npm run compile`       | Compile the Compact contract.                                  |
 | `npm run deploy`        | Deploy the compiled contract (requires devnet up + compiled).  |
 | `npm run cli`           | Interactive CLI to call circuits on the deployed contract.     |
-| `npm run check-balance` | Print the genesis-seed wallet's NIGHT and DUST balances.       |
+| `npm run check-balance` | Print the wallet's NIGHT and DUST balances.                    |
+| `npm run dust-register` | Register NIGHT UTXOs for DUST generation (with retries) — standalone, for when deploy's inline registration was rejected. |
 | `npm run test:e2e`      | Smoke + read-back check against the deployed contract.         |
 | `npm run clean`         | Remove `contracts/managed/`, `.midnight-state.json`, and `.midnight-wallet-state/`. |
 | `npm run proof-server:start` / `:stop` | Compose lifecycle for just the proof-server service. |
@@ -206,7 +213,8 @@ ConfiCred/
 ├── contracts/
 │   └── hello-world.compact     # Compact source
 ├── scripts/
-│   └── e2e-check.ts            # smoke + read-back
+│   ├── e2e-check.ts            # smoke + read-back
+│   └── dust-register.ts        # standalone DUST registration w/ retries
 ├── src/
 │   ├── network.ts              # network selection + state file management
 │   ├── wallet.ts               # wallet construction + sync-state cache

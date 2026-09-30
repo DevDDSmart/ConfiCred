@@ -19,18 +19,30 @@ inside the Lace wallet and only the commitment of your secret lands on-chain.
 | Network  | Address |
 |----------|---------|
 | Preview  | `3c4b03db566b9046600dc77c68660f5370f97c860665fa85737ee2c1382b0c73` |
-| Preprod  | `41a259a5c805adfc15885a02498c98b04acafd95bb0b0575398cffbe631b9989` |
+| Preprod (live, used by the dApp) | `40919146318915fd52397826f35d3ba9933d64fdbeb173485f73e011f1b428f0` |
+| Preprod (Level-1 registration, v1) | `41a259a5c805adfc15885a02498c98b04acafd95bb0b0575398cffbe631b9989` |
 
-The preprod address above is the **registered Level-1 deployment** of this
-project's contract (`contracts/credential-registry.compact`) and is the exact
-address the deployed frontend calls (see
-`frontend/src/contract/registry.ts`). Both addresses are live and
-indexer-verified; the full credential **lifecycle** (register → rotate →
-suspend → reinstate → revoke) was executed on-chain with every state
+Both preprod addresses are deployments of **this project's contract**
+(`contracts/credential-registry.compact`) made during Level 1:
+
+- `41a259a5…` is the originally **registered Level-1 deployment** (v1 —
+  `registerCredential` / `revokeCredential`). It was registered on Rise In
+  before the contract was extended.
+- `40919146…` is the **live v2 deployment of the current source** (5
+  state-changing circuits: register / rotate / suspend / reinstate / revoke,
+  6 ledger declarations) and is the exact address the deployed frontend
+  calls (see `frontend/src/contract/registry.ts`).
+
+A ZK contract deployment is pinned to the verifier keys generated at deploy
+time, so the frontend must ship keys from the same compile as the deployment
+it calls — it therefore targets the v2 deployment, which is a strict
+superset of the v1 contract.
+
+The full credential **lifecycle** (register → rotate → suspend → reinstate →
+revoke) was executed on-chain against this deployment with every state
 transition verified through the indexer — see `npm run verify:circuits`.
-(Later redeploys of the same contract: preview
-`b679d86221ed2893ffd6be94fef8aac1222ed592b2fdf43f9d70f260e206853e`, preprod
-`40919146318915fd52397826f35d3ba9933d64fdbeb173485f73e011f1b428f0`. The
+(Other redeploys of the same contract: preview
+`b679d86221ed2893ffd6be94fef8aac1222ed592b2fdf43f9d70f260e206853e`. The
 Step-3 hello-world deploy used for toolchain bring-up was
 `1e30c98f91c424e406029a62f8a4bf73aa1c5c22ab702173e5ba3142bcde8c28` on preview.)
 

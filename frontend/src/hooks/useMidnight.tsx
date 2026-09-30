@@ -15,15 +15,17 @@
  * expose `getProvingProvider`, we fall back to the public preprod proof
  * server and surface that in the UI (`provingMode === 'proof-server'`).
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { InitialAPI, ConnectedAPI } from '@midnight-ntwrk/dapp-connector-api';
 import { findDeployedContract } from '@midnight-ntwrk/midnight-js/contracts';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
 import { dappConnectorProvingProvider } from '@midnight-ntwrk/midnight-js-dapp-connector-proof-provider';
-import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider';
 import { setNetworkId } from '@midnight-ntwrk/midnight-js/network-id';
-import type { ProofProvider } from '@midnight-ntwrk/midnight-js/types';
+import type {
+  ProofProvider,
+  PrivateStateProvider,
+} from '@midnight-ntwrk/midnight-js/types';
 import { createProofProvider } from '@midnight-ntwrk/midnight-js/types';
 import * as ledger from '@midnight-ntwrk/midnight-js-protocol/ledger';
 import {
@@ -62,6 +64,58 @@ export interface CircuitCallResult {
 
 const LS_KEY = 'conficred.connected.rdns';
 
+/**
+ * Minimal in-memory PrivateStateProvider.
+ *
+ * The previous `levelPrivateStateProvider` (level/abstract-level) crashes
+ * inside the production Vite bundle (`Class extends value undefined`), which
+ * blanked the whole app. `registerCredential` in this contract carries no
+ * private state, so a session-scoped memory store preserves the full
+ * privacy property (the witness never persists) while keeping the bundle
+ * clean. Private state lives only for the life of the tab — strictly less
+ * exposure than an encrypted-on-disk store for this circuit.
+ */
+function createInMemoryPrivateStateProvider(): PrivateStateProvider {
+  type StoredSigningKey = { address: string; index: number }; // shape midnight-js expects for signing keys
+  const states = new Map<string, unknown>();
+  const signingKeys = new Map<string, unknown>();
+  let contractAddress = '';
+  const scope = (id: string) => `${contractAddress}::${id}`;
+
+  return {
+    setContractAddress(address: string) {
+      contractAddress = address;
+    },
+    async set(id: string, state: unknown) {
+      states.set(scope(id), structuredClone(state));
+    },
+    async get(id: string) {
+      const v = states.get(scope(id));
+      return v === undefined ? null : structuredClone(v);
+    },
+    async remove(id: string) {
+      states.delete(scope(id));
+    },
+    async clear() {
+      states.clear();
+      signingKeys.clear();
+    },
+    async setSigningKey(address: string, key: unknown) {
+      signingKeys.set(address, structuredClone(key));
+    },
+    async getSigningKey(address: string) {
+      const v = signingKeys.get(address);
+      return v === undefined ? null : structuredClone(v);
+    },
+    async removeSigningKey(address: string) {
+      signingKeys.delete(address);
+    },
+    async exportPrivateStates() {
+      return { states: {} } as never;
+    },
+  } as never;
+}
+
 function getLaceInitialApi(): InitialAPI | null {
   const injected = (window as unknown as { midnight?: Record<string, InitialAPI> }).midnight;
   if (!injected) return null;
@@ -70,7 +124,7 @@ function getLaceInitialApi(): InitialAPI | null {
   return lace ?? Object.values(injected)[0] ?? null;
 }
 
-export function useMidnight() {
+export function useMidnightState() {
   const [wallet, setWallet] = useState<WalletState>({ status: 'checking' });
   const [api, setApi] = useState<ConnectedAPI | null>(null);
   const [proofProvider, setProofProvider] = useState<ProofProvider | null>(null);
@@ -182,11 +236,7 @@ export function useMidnight() {
       },
     };
     return {
-      privateStateProvider: levelPrivateStateProvider({
-        privateStateStoreName: 'conficred-frontend-state',
-        accountId: 'browser-dapp',
-        privateStoragePasswordProvider: () => Promise.resolve('Conficred-Dapp-Placeholder-Pwd-1'),
-      }),
+      privateStateProvider: createInMemoryPrivateStateProvider(),
       publicDataProvider: indexerPublicDataProvider(NETWORK.indexer, NETWORK.indexerWS),
       zkConfigProvider,
       proofProvider,
@@ -249,6 +299,27 @@ export function useMidnight() {
     provingMode,
     isConnected: wallet.status === 'connected',
   };
+}
+
+/**
+ * Shared wallet state via context. WalletConnect and CircuitCall must see the
+ * SAME connection — previously each component instantiated its own hook state,
+ * so connecting in one left the other believing it was disconnected.
+ */
+
+type MidnightState = ReturnType<typeof useMidnightState>;
+
+const MidnightContext = createContext<MidnightState | null>(null);
+
+export function MidnightProvider({ children }: { children: ReactNode }) {
+  const state = useMidnightState();
+  return <MidnightContext.Provider value={state}>{children}</MidnightContext.Provider>;
+}
+
+export function useMidnight(): MidnightState {
+  const ctx = useContext(MidnightContext);
+  if (!ctx) throw new Error('useMidnight must be used within <MidnightProvider>');
+  return ctx;
 }
 
 function pad32(text: string): Uint8Array {

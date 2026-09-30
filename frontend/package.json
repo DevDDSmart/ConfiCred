@@ -15,7 +15,6 @@
     "@midnight-ntwrk/midnight-js-dapp-connector-proof-provider": "4.1.1",
     "@midnight-ntwrk/midnight-js-http-client-proof-provider": "^4.1.1",
     "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "^4.1.1",
-    "@midnight-ntwrk/midnight-js-level-private-state-provider": "^4.1.1",
     "@midnight-ntwrk/onchain-runtime-v3": "3.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

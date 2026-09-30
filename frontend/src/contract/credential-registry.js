@@ -70,28 +70,28 @@ export class Contract {
         if (!(typeof(contextOrig_0) === 'object' && contextOrig_0.currentQueryContext != undefined)) {
           __compactRuntime.typeError('registerCredential',
                                      'argument 1 (as invoked from Typescript)',
-                                     'credential-registry.compact line 63 char 1',
+                                     'v2.compact line 63 char 1',
                                      'CircuitContext',
                                      contextOrig_0)
         }
         if (!(holderSecret_0.buffer instanceof ArrayBuffer && holderSecret_0.BYTES_PER_ELEMENT === 1 && holderSecret_0.length === 32)) {
           __compactRuntime.typeError('registerCredential',
                                      'argument 1 (argument 2 as invoked from Typescript)',
-                                     'credential-registry.compact line 63 char 1',
+                                     'v2.compact line 63 char 1',
                                      'Bytes<32>',
                                      holderSecret_0)
         }
         if (!(typeof(issuerId_0) === 'bigint' && issuerId_0 >= 0 && issuerId_0 <= __compactRuntime.MAX_FIELD)) {
           __compactRuntime.typeError('registerCredential',
                                      'argument 2 (argument 3 as invoked from Typescript)',
-                                     'credential-registry.compact line 63 char 1',
+                                     'v2.compact line 63 char 1',
                                      'Field',
                                      issuerId_0)
         }
         if (!(credentialId_0.buffer instanceof ArrayBuffer && credentialId_0.BYTES_PER_ELEMENT === 1 && credentialId_0.length === 32)) {
           __compactRuntime.typeError('registerCredential',
                                      'argument 3 (argument 4 as invoked from Typescript)',
-                                     'credential-registry.compact line 63 char 1',
+                                     'v2.compact line 63 char 1',
                                      'Bytes<32>',
                                      credentialId_0)
         }
@@ -122,14 +122,14 @@ export class Contract {
         if (!(typeof(contextOrig_0) === 'object' && contextOrig_0.currentQueryContext != undefined)) {
           __compactRuntime.typeError('revokeCredential',
                                      'argument 1 (as invoked from Typescript)',
-                                     'credential-registry.compact line 86 char 1',
+                                     'v2.compact line 86 char 1',
                                      'CircuitContext',
                                      contextOrig_0)
         }
         if (!(credentialId_0.buffer instanceof ArrayBuffer && credentialId_0.BYTES_PER_ELEMENT === 1 && credentialId_0.length === 32)) {
           __compactRuntime.typeError('revokeCredential',
                                      'argument 1 (argument 2 as invoked from Typescript)',
-                                     'credential-registry.compact line 86 char 1',
+                                     'v2.compact line 86 char 1',
                                      'Bytes<32>',
                                      credentialId_0)
         }
@@ -160,28 +160,28 @@ export class Contract {
         if (!(typeof(contextOrig_0) === 'object' && contextOrig_0.currentQueryContext != undefined)) {
           __compactRuntime.typeError('rotateCredential',
                                      'argument 1 (as invoked from Typescript)',
-                                     'credential-registry.compact line 111 char 1',
+                                     'v2.compact line 111 char 1',
                                      'CircuitContext',
                                      contextOrig_0)
         }
         if (!(holderSecret_0.buffer instanceof ArrayBuffer && holderSecret_0.BYTES_PER_ELEMENT === 1 && holderSecret_0.length === 32)) {
           __compactRuntime.typeError('rotateCredential',
                                      'argument 1 (argument 2 as invoked from Typescript)',
-                                     'credential-registry.compact line 111 char 1',
+                                     'v2.compact line 111 char 1',
                                      'Bytes<32>',
                                      holderSecret_0)
         }
         if (!(newHolderSecret_0.buffer instanceof ArrayBuffer && newHolderSecret_0.BYTES_PER_ELEMENT === 1 && newHolderSecret_0.length === 32)) {
           __compactRuntime.typeError('rotateCredential',
                                      'argument 2 (argument 3 as invoked from Typescript)',
-                                     'credential-registry.compact line 111 char 1',
+                                     'v2.compact line 111 char 1',
                                      'Bytes<32>',
                                      newHolderSecret_0)
         }
         if (!(credentialId_0.buffer instanceof ArrayBuffer && credentialId_0.BYTES_PER_ELEMENT === 1 && credentialId_0.length === 32)) {
           __compactRuntime.typeError('rotateCredential',
                                      'argument 3 (argument 4 as invoked from Typescript)',
-                                     'credential-registry.compact line 111 char 1',
+                                     'v2.compact line 111 char 1',
                                      'Bytes<32>',
                                      credentialId_0)
         }
@@ -212,14 +212,14 @@ export class Contract {
         if (!(typeof(contextOrig_0) === 'object' && contextOrig_0.currentQueryContext != undefined)) {
           __compactRuntime.typeError('suspendCredential',
                                      'argument 1 (as invoked from Typescript)',
-                                     'credential-registry.compact line 133 char 1',
+                                     'v2.compact line 133 char 1',
                                      'CircuitContext',
                                      contextOrig_0)
         }
         if (!(credentialId_0.buffer instanceof ArrayBuffer && credentialId_0.BYTES_PER_ELEMENT === 1 && credentialId_0.length === 32)) {
           __compactRuntime.typeError('suspendCredential',
                                      'argument 1 (argument 2 as invoked from Typescript)',
-                                     'credential-registry.compact line 133 char 1',
+                                     'v2.compact line 133 char 1',
                                      'Bytes<32>',
                                      credentialId_0)
         }
@@ -248,14 +248,14 @@ export class Contract {
         if (!(typeof(contextOrig_0) === 'object' && contextOrig_0.currentQueryContext != undefined)) {
           __compactRuntime.typeError('reinstateCredential',
                                      'argument 1 (as invoked from Typescript)',
-                                     'credential-registry.compact line 149 char 1',
+                                     'v2.compact line 149 char 1',
                                      'CircuitContext',
                                      contextOrig_0)
         }
         if (!(credentialId_0.buffer instanceof ArrayBuffer && credentialId_0.BYTES_PER_ELEMENT === 1 && credentialId_0.length === 32)) {
           __compactRuntime.typeError('reinstateCredential',
                                      'argument 1 (argument 2 as invoked from Typescript)',
-                                     'credential-registry.compact line 149 char 1',
+                                     'v2.compact line 149 char 1',
                                      'Bytes<32>',
                                      credentialId_0)
         }
@@ -907,7 +907,7 @@ export function ledger(stateOrChargedState) {
         if (!(key_0.buffer instanceof ArrayBuffer && key_0.BYTES_PER_ELEMENT === 1 && key_0.length === 32)) {
           __compactRuntime.typeError('member',
                                      'argument 1',
-                                     'credential-registry.compact line 43 char 1',
+                                     'v2.compact line 43 char 1',
                                      'Bytes<32>',
                                      key_0)
         }
@@ -936,7 +936,7 @@ export function ledger(stateOrChargedState) {
         if (!(key_0.buffer instanceof ArrayBuffer && key_0.BYTES_PER_ELEMENT === 1 && key_0.length === 32)) {
           __compactRuntime.typeError('lookup',
                                      'argument 1',
-                                     'credential-registry.compact line 43 char 1',
+                                     'v2.compact line 43 char 1',
                                      'Bytes<32>',
                                      key_0)
         }
@@ -1016,7 +1016,7 @@ export function ledger(stateOrChargedState) {
         if (!(key_0.buffer instanceof ArrayBuffer && key_0.BYTES_PER_ELEMENT === 1 && key_0.length === 32)) {
           __compactRuntime.typeError('member',
                                      'argument 1',
-                                     'credential-registry.compact line 44 char 1',
+                                     'v2.compact line 44 char 1',
                                      'Bytes<32>',
                                      key_0)
         }
@@ -1045,7 +1045,7 @@ export function ledger(stateOrChargedState) {
         if (!(key_0.buffer instanceof ArrayBuffer && key_0.BYTES_PER_ELEMENT === 1 && key_0.length === 32)) {
           __compactRuntime.typeError('lookup',
                                      'argument 1',
-                                     'credential-registry.compact line 44 char 1',
+                                     'v2.compact line 44 char 1',
                                      'Bytes<32>',
                                      key_0)
         }
@@ -1125,7 +1125,7 @@ export function ledger(stateOrChargedState) {
         if (!(key_0.buffer instanceof ArrayBuffer && key_0.BYTES_PER_ELEMENT === 1 && key_0.length === 32)) {
           __compactRuntime.typeError('member',
                                      'argument 1',
-                                     'credential-registry.compact line 45 char 1',
+                                     'v2.compact line 45 char 1',
                                      'Bytes<32>',
                                      key_0)
         }
@@ -1154,7 +1154,7 @@ export function ledger(stateOrChargedState) {
         if (!(key_0.buffer instanceof ArrayBuffer && key_0.BYTES_PER_ELEMENT === 1 && key_0.length === 32)) {
           __compactRuntime.typeError('lookup',
                                      'argument 1',
-                                     'credential-registry.compact line 45 char 1',
+                                     'v2.compact line 45 char 1',
                                      'Bytes<32>',
                                      key_0)
         }
@@ -1200,7 +1200,7 @@ export const pureCircuits = {
     if (!(credentialId_0.buffer instanceof ArrayBuffer && credentialId_0.BYTES_PER_ELEMENT === 1 && credentialId_0.length === 32)) {
       __compactRuntime.typeError('isCredentialRevoked',
                                  'argument 1',
-                                 'credential-registry.compact line 176 char 1',
+                                 'v2.compact line 176 char 1',
                                  'Bytes<32>',
                                  credentialId_0)
     }
@@ -1214,7 +1214,7 @@ export const pureCircuits = {
     if (!(credentialId_0.buffer instanceof ArrayBuffer && credentialId_0.BYTES_PER_ELEMENT === 1 && credentialId_0.length === 32)) {
       __compactRuntime.typeError('isCredentialSuspended',
                                  'argument 1',
-                                 'credential-registry.compact line 181 char 1',
+                                 'v2.compact line 181 char 1',
                                  'Bytes<32>',
                                  credentialId_0)
     }

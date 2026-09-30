@@ -23,16 +23,17 @@ import {
  * Deployed preprod contract address. Override via VITE_CONTRACT_ADDRESS for
  * local testing against another deployment.
  *
- * This is the Level-1-registered preprod deployment (v1). The README's
- * Contract Address table must always match this value.
+ * This is this project's live preprod deployment of the current contract
+ * source (v2: 5 state-changing circuits). The README's Contract Address
+ * table must always match this value.
  */
 export const CONTRACT_ADDRESS =
   import.meta.env.VITE_CONTRACT_ADDRESS ??
-  '41a259a5c805adfc15885a02498c98b04acafd95bb0b0575398cffbe631b9989';
+  '40919146318915fd52397826f35d3ba9933d64fdbeb173485f73e011f1b428f0';
 
 export const PRIVATE_STATE_ID = 'credentialRegistryPrivateState';
 
-/** Circuit IDs of the deployed contract's state-changing circuits. */
+/** Circuit IDs of the deployed contract's state-changing circuits (v2 contract). */
 export const CIRCUITS = [
   'registerCredential',
   'rotateCredential',

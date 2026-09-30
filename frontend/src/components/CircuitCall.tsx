@@ -22,7 +22,6 @@ export function CircuitCall() {
   const [result, setResult] = useState<{ txId: string; blockHeight?: bigint } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [registry, setRegistry] = useState<Awaited<ReturnType<typeof readRegistry>>>(null);
-
   const busy = phase === 'proving' || phase === 'submitting';
 
   async function handleCall() {

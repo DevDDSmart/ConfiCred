@@ -14,7 +14,7 @@ import { useMidnight } from '../hooks/useMidnight';
 type Phase = 'idle' | 'proving' | 'submitting' | 'done' | 'error';
 
 export function CircuitCall() {
-  const { isConnected, callCircuit, readRegistry } = useMidnight();
+  const { isConnected, callCircuit, readRegistry, provingMode } = useMidnight();
   const [credentialId, setCredentialId] = useState('');
   const [holderSecret, setHolderSecret] = useState('');
   const [issuer, setIssuer] = useState('1');
@@ -101,14 +101,27 @@ export function CircuitCall() {
 
       {!isConnected && <p className="muted small">Connect your Lace wallet first.</p>}
 
-      <p className="privacy-note">🔐 Proved without revealing your input</p>
+      <p className="privacy-note">
+        🔐 Proved without revealing your input
+        {provingMode && (
+          <span className="proving-mode" title={
+            provingMode === 'wallet'
+              ? 'The ZK proof is generated inside your Lace wallet, on your machine. No proof preimage leaves this device.'
+              : 'This wallet build cannot prove locally, so the serialized proof preimage is sent to the public preprod proof server.'
+          }>
+            {' '}· {provingMode === 'wallet' ? 'proving in your wallet (local)' : 'proving via proof server (fallback)'}
+          </span>
+        )}
+      </p>
 
       {busy && (
         <div className="progress" role="status">
           <div className="spinner" />
           <span>
             {phase === 'proving'
-              ? 'Building the zero-knowledge proof locally — this takes a few seconds…'
+              ? provingMode === 'wallet'
+                ? 'Proving inside your Lace wallet on this machine — no preimage leaves your device…'
+                : 'Building the zero-knowledge proof locally — this takes a few seconds…'
               : 'Submitting the transaction and waiting for it to land…'}
           </span>
         </div>

@@ -6,17 +6,25 @@
  * dapp-connector-api globals). connect('preprod') returns a ConnectedAPI.
  *
  * Circuit side: circuits are called through midnight-js `findDeployedContract`
- * with providers whose walletProvider delegates to the Lace ConnectedAPI —
- * balancing happens inside the wallet, proofs on the configured proof server,
- * submission through the wallet.
+ * with providers whose walletProvider delegates to the Lace ConnectedAPI.
+ *
+ * Proving side: ZK proofs are generated on the user's machine — the key
+ * material from our ZKConfigProvider (/zk artifacts) is handed to the wallet
+ * via `dappConnectorProvingProvider`, and Lace proves inside the extension.
+ * No proof preimage ever leaves the machine. If an older Lace build does not
+ * expose `getProvingProvider`, we fall back to the public preprod proof
+ * server and surface that in the UI (`provingMode === 'proof-server'`).
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { InitialAPI, ConnectedAPI } from '@midnight-ntwrk/dapp-connector-api';
 import { findDeployedContract } from '@midnight-ntwrk/midnight-js/contracts';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
+import { dappConnectorProvingProvider } from '@midnight-ntwrk/midnight-js-dapp-connector-proof-provider';
 import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider';
 import { setNetworkId } from '@midnight-ntwrk/midnight-js/network-id';
+import type { ProofProvider } from '@midnight-ntwrk/midnight-js/types';
+import { createProofProvider } from '@midnight-ntwrk/midnight-js/types';
 import * as ledger from '@midnight-ntwrk/midnight-js-protocol/ledger';
 import {
   compiledContract,
@@ -44,6 +52,9 @@ export interface WalletState {
   walletName?: string;
 }
 
+/** Where ZK proofs are generated for this session. */
+export type ProvingMode = 'wallet' | 'proof-server';
+
 export interface CircuitCallResult {
   txId: string;
   blockHeight?: bigint;
@@ -62,6 +73,8 @@ function getLaceInitialApi(): InitialAPI | null {
 export function useMidnight() {
   const [wallet, setWallet] = useState<WalletState>({ status: 'checking' });
   const [api, setApi] = useState<ConnectedAPI | null>(null);
+  const [proofProvider, setProofProvider] = useState<ProofProvider | null>(null);
+  const [provingMode, setProvingMode] = useState<ProvingMode | null>(null);
 
   // Detect wallet presence on mount.
   useEffect(() => {
@@ -102,15 +115,57 @@ export function useMidnight() {
 
   const disconnect = useCallback(() => {
     setApi(null);
+    setProofProvider(null);
+    setProvingMode(null);
     localStorage.removeItem(LS_KEY);
     setWallet(getLaceInitialApi() ? { status: 'disconnected' } : { status: 'not-installed' });
   }, []);
 
-  // ─── Providers (built lazily once connected) ────────────────────────────────
+  // ─── Proving: delegate to the wallet (local machine), with a fallback ───────
+  //
+  // The wallet receives only the prover/verifier keys + ZKIR (public
+  // artifacts fetched from /zk) and the serialized proof preimage. The
+  // private witness stays inside the circuit pipeline on this machine.
+  useEffect(() => {
+    if (!api) {
+      setProofProvider(null);
+      setProvingMode(null);
+      return;
+    }
+    let cancelled = false;
+    setNetworkId('preprod');
+    (async () => {
+      try {
+        if (typeof api.getProvingProvider === 'function') {
+          const proving = await dappConnectorProvingProvider(api, zkConfigProvider);
+          if (cancelled) return;
+          setProofProvider(createProofProvider(proving));
+          setProvingMode('wallet');
+        } else {
+          // Older Lace build without proving delegation: use the public
+          // preprod proof server so the dApp still works.
+          console.warn(
+            'Connected wallet does not expose getProvingProvider — falling back to the preprod proof server.',
+          );
+          setProofProvider(httpClientProofProvider(NETWORK.proofServer, zkConfigProvider));
+          setProvingMode('proof-server');
+        }
+      } catch (err: unknown) {
+        if (!cancelled) {
+          const msg = err instanceof Error ? err.message : String(err);
+          setWallet({ status: 'error', error: `Proving setup with the wallet failed: ${msg}` });
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [api]);
+
+  // ─── Providers (built once wallet + proving are ready) ──────────────────────
 
   const providers = useMemo(() => {
-    if (!api) return null;
-    setNetworkId('preprod');
+    if (!api || !proofProvider) return null;
     const walletProvider = {
       async balanceTx(tx: unknown, _ttl?: Date) {
         // Serialize the unbound (proven, unbalanced) transaction and hand it
@@ -134,11 +189,11 @@ export function useMidnight() {
       }),
       publicDataProvider: indexerPublicDataProvider(NETWORK.indexer, NETWORK.indexerWS),
       zkConfigProvider,
-      proofProvider: httpClientProofProvider(NETWORK.proofServer, zkConfigProvider),
+      proofProvider,
       walletProvider,
       midnightProvider: walletProvider,
     };
-  }, [api]);
+  }, [api, proofProvider]);
 
   /** Read the on-chain registry state via the public data provider. */
   const readRegistry = useCallback(async () => {
@@ -185,7 +240,15 @@ export function useMidnight() {
     [api, providers],
   );
 
-  return { wallet, connect, disconnect, callCircuit, readRegistry, isConnected: wallet.status === 'connected' };
+  return {
+    wallet,
+    connect,
+    disconnect,
+    callCircuit,
+    readRegistry,
+    provingMode,
+    isConnected: wallet.status === 'connected',
+  };
 }
 
 function pad32(text: string): Uint8Array {

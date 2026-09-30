@@ -211,7 +211,7 @@ generated state.
 ```
 ConfiCred/
 ├── contracts/
-│   └── hello-world.compact     # Compact source
+│   └── credential-registry.compact  # Compact source
 ├── scripts/
 │   ├── e2e-check.ts            # smoke + read-back
 │   └── dust-register.ts        # standalone DUST registration w/ retries

@@ -1,5 +1,5 @@
 /**
- * CLI for interacting with mn-demo contract
+ * CLI for interacting with the ConfiCred credential-registry contract
  */
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';

@@ -18,9 +18,9 @@ inside the Lace wallet and only the commitment of your secret lands on-chain.
 
 | Network  | Address |
 |----------|---------|
-| Preview  | `3c4b03db566b9046600dc77c68660f5370f97c860665fa85737ee2c1382b0c73` |
-| Preprod (live, used by the dApp) | `40919146318915fd52397826f35d3ba9933d64fdbeb173485f73e011f1b428f0` |
-| Preprod (Level-1 registration, v1) | `41a259a5c805adfc15885a02498c98b04acafd95bb0b0575398cffbe631b9989` |
+| Preprod  | `41a259a5c805adfc15885a02498c98b04acafd95bb0b0575398cffbe631b9989` |
+| Preprod (live v2, used by the dApp) | `40919146318915fd52397826f35d3ba9933d64fdbeb173485f73e011f1b428f0` |
+| Preview | `3c4b03db566b9046600dc77c68660f5370f97c860665fa85737ee2c1382b0c73` |
 
 Both preprod addresses are deployments of **this project's contract**
 (`contracts/credential-registry.compact`) made during Level 1:
@@ -128,9 +128,10 @@ secret (string and hex) appears nowhere in it.
 ## Prerequisites
 
 - **Lace wallet** browser extension, set to the **Midnight preprod** network
-  ([lace.io](https://lace.io/)), funded with tNIGHT from the
-  [preprod faucet](https://midnight-tmnight-preprod.nethermind.dev)
-- Node.js **v22 or newer** (`node --version`)
+  ([lace.io](https://lace.io/))
+- Node.js **v22** (`node --version`; newer works too)
+- tNIGHT from the [preprod faucet](https://midnight-tmnight-preprod.nethermind.dev)
+  for on-chain transactions
 - Docker with Compose v2, running
 - The **Compact toolchain**: the `compact` launcher ships as a standalone
   binary on the [official releases](https://github.com/midnightntwrk/compact/releases);
@@ -165,7 +166,7 @@ npm run test:e2e
 
 `npm run test:e2e` reconnects to the deployed contract and reads its ledger state. Exits 0 if the contract is live and indexable.
 
-## Run Locally (frontend)
+## Run Locally
 
 ```bash
 git clone https://github.com/DevDDSmart/ConfiCred.git
@@ -187,7 +188,9 @@ artifacts.
 
 ## Demo Video
 
-<!-- PLACEHOLDER — add the link after recording -->
+**Draft demo (auto-recorded, full dApp flow): [`docs/demo/conficred-demo.mp4`](docs/demo/conficred-demo.mp4)**
+
+<!-- PLACEHOLDER — replace/add the link after recording the final video with real Lace (see docs/demo/WALLET-SCENES.md) -->
 
 **Recording checklist (under 2 minutes):**
 

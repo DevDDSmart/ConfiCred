@@ -190,10 +190,10 @@ artifacts.
 
 ## Tests — [`tests/credential-registry.test.ts`](tests/credential-registry.test.ts)
 
-14 tests in one suite, run by CI on every push:
+18 tests in one suite, run by CI on every push:
 
 ```bash
-npm test            # 14 unit tests: circuit logic, lifecycle, privacy
+npm test            # 18 tests: circuit logic, lifecycle, privacy, simulator
 npm run test:e2e    # live read-back against the deployed contract
 npm run verify:circuits   # full register→rotate→suspend→reinstate→revoke on-chain round-trip
 ```
@@ -226,13 +226,28 @@ and that private inputs are never exposed in public state.
 - same secret yields the same commitment without revealing the secret
 - rotation reveals neither the old nor the new secret on-chain
 
+**Registry simulator (4)**
+- many credentials tracked independently in one shared ledger (commitments
+  match isolated single-credential runs exactly)
+- an unknown credential ID has no commitment and is not counted
+- status digests are domain-separated: a commitment is never confused with a
+  `revoked` / `suspended` / `active` marker (all four pairwise distinct)
+- revoking one credential leaves others untouched (no cross-credential effects)
+
 **Verified output (CI runs this on every push):**
 
 ```text
- ✓ tests/credential-registry.test.ts (14 tests)
+ ✓ tests/credential-registry.test.ts (18 tests)
  Test Files  1 passed (1)
-      Tests  14 passed (14)
+      Tests  18 passed (18)
 ```
+
+> **Evidence index for reviewers** — tests:
+> `tests/credential-registry.test.ts` (this whole section quotes it);
+> proposal: `PROPOSAL.md` (summarized under [Product Proposal](#product-proposal));
+> CI workflow: `.github/workflows/ci.yml`; contract:
+> `contracts/credential-registry.compact`; frontend wiring:
+> `frontend/src/hooks/useMidnight.tsx`.
 
 ### Sample: the core privacy test (verbatim from [`tests/credential-registry.test.ts`](tests/credential-registry.test.ts))
 
@@ -281,8 +296,8 @@ and on every **pull request**:
 5. **`npm run compile`** — compile the `.compact` contract to
    `contracts/managed/`.
 6. **`npx tsc --noEmit`** — typecheck.
-7. **`npm test`** — the 14-test suite (circuit logic, state transitions,
-   privacy).
+7. **`npm test`** — the 18-test suite (circuit logic, state transitions,
+   privacy, registry simulator).
 
 A green badge at the top of this file means the contract compiles and every
 circuit/state/privacy test passes on the exact commit you are viewing.

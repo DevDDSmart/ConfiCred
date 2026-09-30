@@ -6,18 +6,21 @@ ConfiCred is a zero-knowledge credential registry: issuers anchor tamper-proof
 commitments to credentials on Midnight, and holders prove ownership of a
 credential without ever revealing the secret behind it.
 
-Who uses it:
+Three concrete user groups, each with a pain the product removes:
 
 - **Issuers** — universities, licensing boards, employers, membership
-  organizations — enroll each credential once, on-chain, by submitting the
-  holder's commitment.
-- **Holders** — graduates, licensed professionals, employees, members — keep
-  their secret locally and prove ownership (and rotate it if it leaks) at any
-  time, from the dApp or their wallet.
-- **Verifiers** — employers, regulators, border control, venues — audit that
-  a credential exists, is active, and has not been revoked or suspended,
-  without calling the issuer and without learning anything about the holder
-  beyond what the holder chooses to show.
+  organizations — enroll each credential once, on-chain. Today they run
+  manual verification hotlines and honey-pot databases of personal data;
+  ConfiCred replaces both with a public registry their users can self-serve
+  from.
+- **Holders** — graduates, licensed professionals, employees, members — hold
+  one secret per credential. If it leaks, they rotate it on-chain (ZK access
+  control: prove knowledge of the current secret to replace it) instead of
+  waiting for the issuer to reissue.
+- **Verifiers** — employers, regulators, venues — check that a credential
+  exists, is active, and is not revoked by reading public ledger state.
+  No phone calls to the issuer, no trust in a third-party API, and nothing
+  learned about the holder beyond what the holder shows.
 
 ## Why Midnight specifically?
 
@@ -59,21 +62,24 @@ a transparent chain structurally cannot offer.
 
 ## Mainnet Feasibility
 
-Yes — realistic to reach Mainnet by Level 6.
+Yes — realistic to reach Mainnet by Level 6, with the risks named:
 
 - **Architecture is done, not theoretical**: the same compiled contract is
-  already live and lifecycle-verified on preprod (register → rotate →
-  suspend → reinstate → revoke, each transition indexer-verified); targeting
-  mainnet is a network-id switch plus a funded deploy wallet, not a rewrite.
-- **Toolchain is reproducible**: compiles are pinned (compact `0.5.3` /
-  compiler `0.31.1`) and verified deterministic; CI compiles and tests every
-  commit, so mainnet artifacts come from the exact audited source.
-- **Costs are small and predictable**: a credential is one registry write
-  (a few ledger entries plus a proof); no per-credential on-chain blobs.
-- **Known gaps are operational, not architectural**: Lace mainnet support and
-  mainnet faucets/token distribution, indexer uptime SLAs, and an issuer
-  onboarding flow (key management for the issuer identity) — all standard
-  launch work, tracked and incremental.
+  live and lifecycle-verified on preprod (register → rotate → suspend →
+  reinstate → revoke, every transition indexer-verified). Mainnet is a
+  network-id switch plus a funded deploy wallet, not a rewrite.
+- **Toolchain is reproducible**: compiler pinned (compact `0.5.3` /
+  `0.31.1`), compiles verified byte-deterministic; CI recompiles and re-runs
+  the 18-test suite on every commit, so mainnet artifacts come from the
+  exact audited source.
+- **Costs are small and predictable**: one registry write per credential —
+  a commitment plus status flags, no per-credential blobs, no per-verification
+  chain interaction at all (verifiers read public state for free).
+- **Named gaps, all operational**: Lace mainnet availability and mainnet
+  token distribution; indexer uptime SLAs; issuer key management (an issuer
+  identity is currently a field element — production needs a rotation story
+  for compromised issuers); and the v1/v2 deployment lineage on preprod must
+  collapse to a single mainnet deployment.
 
-None of the remaining work touches the privacy model, which is the part that
-is genuinely hard to retrofit.
+None of the remaining work touches the privacy model — the part that is
+structurally impossible to retrofit on a transparent chain.

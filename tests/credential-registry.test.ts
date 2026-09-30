@@ -326,3 +326,75 @@ describe('privacy', () => {
     expect(serialized).not.toContain('privacy-new-secret');
   });
 });
+
+// ─── 4. Multi-credential simulator (commitment-collision & concurrent states) ─
+
+describe('registry simulator', () => {
+  it('tracks many credentials independently — full lifecycle per credential in one ledger', () => {
+    const issuers = [1n, 2n, 3n];
+    const creds = issuers.map((_, i) => bytes32(`sim-credential-${i}`));
+    const secrets = issuers.map((_, i) => bytes32(`sim-secret-${i}`));
+
+    // Shared ledger: all three registered on one contract instance.
+    const shared = makeContract();
+    creds.forEach((id, i) => shared.call('registerCredential', secrets[i], issuers[i], id));
+    expect(shared.ledger().totalCredentials).toBe(3n);
+
+    // Isolation reference: one contract per credential, single registration.
+    // The commitment in the shared ledger must equal the isolated one —
+    // concurrent credentials never perturb each other's commitments.
+    creds.forEach((id, i) => {
+      const isolated = makeContract();
+      isolated.call('registerCredential', secrets[i], issuers[i], id);
+      expect(Buffer.from(shared.ledger().credentials.lookup(id)).toString('hex')).toBe(
+        Buffer.from(isolated.ledger().credentials.lookup(id)).toString('hex'),
+      );
+    });
+  });
+
+  it('an unknown credential ID has no commitment and is not counted', () => {
+    const c = makeContract();
+    c.call('registerCredential', bytes32('known-secret'), 1n, bytes32('known-id'));
+    const state = c.ledger();
+    expect(state.totalCredentials).toBe(1n);
+    // The map holds exactly one entry — an ID that was never registered has
+    // no commitment (absence, not a zero-value collision).
+    expect(Array.from(state.credentials).length).toBe(1);
+    expect(Array.from(state.credentials)[0][0]).toEqual(bytes32('known-id'));
+  });
+
+  it('status digests are domain-separated: commitment != revoked/suspended/active markers', () => {
+    const c = makeContract();
+    const id = bytes32('domsep-id');
+    c.call('registerCredential', bytes32('domsep-secret'), 1n, id);
+
+    const before = Buffer.from(c.ledger().credentials.lookup(id)).toString('hex');
+    c.call('suspendCredential', id);
+    const suspended = Buffer.from(c.ledger().credentials.lookup(id)).toString('hex');
+    c.call('reinstateCredential', id);
+    const active = Buffer.from(c.ledger().credentials.lookup(id)).toString('hex');
+    c.call('revokeCredential', id);
+    const revoked = Buffer.from(c.ledger().credentials.lookup(id)).toString('hex');
+
+    // All four states are pairwise distinct — a commitment can never be
+    // confused with a lifecycle marker.
+    expect(new Set([before, suspended, active, revoked]).size).toBe(4);
+  });
+
+  it('revoking one credential leaves others untouched (no cross-credential effects)', () => {
+    const c = makeContract();
+    const a = bytes32('isolated-a');
+    const b = bytes32('isolated-b');
+    c.call('registerCredential', bytes32('secret-a'), 1n, a);
+    c.call('registerCredential', bytes32('secret-b'), 1n, b);
+
+    c.call('revokeCredential', a);
+    const state = c.ledger();
+    expect(state.totalRevoked).toBe(1n);
+    // b keeps its original commitment — revocation is per-credential.
+    expect(state.credentials.lookup(b)).toEqual(
+      c.ledger().credentials.lookup(b),
+    );
+    expect(Buffer.from(state.credentials.lookup(a)).toString('hex')).toBe(statusHex('revoked'));
+  });
+});

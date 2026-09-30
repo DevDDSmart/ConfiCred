@@ -201,6 +201,37 @@ mock proofs — no network or proof server needed — and covers circuit logic,
 the full credential lifecycle (including the wrong-secret rotation guard),
 and that private inputs are never exposed in public state.
 
+### What the tests cover — [`tests/credential-registry.test.ts`](tests/credential-registry.test.ts)
+
+**Circuit logic (4)**
+- registerCredential stores the hash of the holder secret, not the secret
+- distinct secrets produce distinct commitments
+- rotateCredential replaces the commitment without changing counters
+- rotation with the wrong secret fails to replace the commitment
+
+**State transitions (6)**
+- counter increments across sequential registrations
+- revokeCredential overwrites the commitment, flips the flag, and counts once
+- double revocation does not double-count
+- suspendCredential marks suspended without touching the revoked counter
+- reinstateCredential restores an active state and clears suspension
+- revocation is terminal: reinstate cannot resurrect a revoked credential
+- full lifecycle: register → suspend → reinstate → revoke
+
+**Privacy (4)**
+- public ledger state never contains the raw holder secret (the whole public
+  state is serialized and searched for the secret — string and hex)
+- same secret yields the same commitment without revealing the secret
+- rotation reveals neither the old nor the new secret on-chain
+
+**Verified output (CI runs this on every push):**
+
+```text
+ ✓ tests/credential-registry.test.ts (14 tests)
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+```
+
 ## CI/CD
 
 The pipeline (`.github/workflows/ci.yml`) runs on every **push to `main`**

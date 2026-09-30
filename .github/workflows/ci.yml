@@ -42,3 +42,22 @@ jobs:
 
       - name: Unit tests (circuit logic, lifecycle, privacy)
         run: npm test
+
+      # Web build + smoke: the dApp must compile with zero errors on every
+      # commit, and the built page must render (smoke-checks the bundle).
+      - name: Frontend install + production build
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Smoke — built page serves and renders
+        run: |
+          cd frontend
+          npx vite preview --port 4173 --strictPort &
+          SERVER_PID=$!
+          sleep 4
+          CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4173/)
+          kill $SERVER_PID
+          [ "$CODE" = "200" ] || { echo "preview returned $CODE"; exit 1; }
+          echo "preview OK (200)"

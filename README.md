@@ -188,7 +188,9 @@ Deployment to Vercel: see [DEPLOY.md](DEPLOY.md) (`cd frontend && vercel
 --prod --yes`); `vercel.json` ships SPA rewrites and caching for the ZK
 artifacts.
 
-## Run Tests
+## Tests — [`tests/credential-registry.test.ts`](tests/credential-registry.test.ts)
+
+14 tests in one suite, run by CI on every push:
 
 ```bash
 npm test            # 14 unit tests: circuit logic, lifecycle, privacy
@@ -232,6 +234,41 @@ and that private inputs are never exposed in public state.
       Tests  14 passed (14)
 ```
 
+### Sample: the core privacy test (verbatim from [`tests/credential-registry.test.ts`](tests/credential-registry.test.ts))
+
+The whole public ledger state is serialized and searched for the secret —
+in both string and hex form. The proof: the secret appears nowhere.
+
+```ts
+describe('privacy', () => {
+  it('public ledger state never contains the raw holder secret', () => {
+    const c = makeContract();
+    const secret = bytes32('topsecret-holder-value');
+
+    c.call('registerCredential', secret, 1n, bytes32('credential-privacy'));
+
+    // Serialize everything publicly readable and search for the secret.
+    const state = c.ledger();
+    const serialized = JSON.stringify(
+      {
+        issuer: state.issuer.toString(),
+        totalCredentials: state.totalCredentials.toString(),
+        credentials: Array.from(state.credentials, ([k, v]: [Uint8Array, Uint8Array]) => [
+          Buffer.from(k).toString('hex'),
+          Buffer.from(v).toString('hex'),
+        ]),
+      },
+      null,
+      2,
+    );
+    const secretHex = Buffer.from(secret).toString('hex');
+    expect(serialized).not.toContain('topsecret-holder-value');
+    expect(serialized).not.toContain(secretHex);
+  });
+  // …13 more tests: circuit logic, lifecycle, rotation guard, hex hiding
+});
+```
+
 ## CI/CD
 
 The pipeline (`.github/workflows/ci.yml`) runs on every **push to `main`**
@@ -252,7 +289,21 @@ circuit/state/privacy test passes on the exact commit you are viewing.
 
 ## Product Proposal
 
-See [PROPOSAL.md](PROPOSAL.md).
+The full proposal lives in [`PROPOSAL.md`](PROPOSAL.md) — the product, who it
+serves, why Midnight (and not a transparent chain) is load-bearing for it,
+the complete public/private data model, and mainnet feasibility. Summary:
+
+| Data Point | Type | Disclosed To |
+|---|---|---|
+| `issuer`, `credentialId`, counters, status flags | Public ledger | Everyone |
+| commitment = hash(`holderSecret`) | Public ledger | Everyone (irreversible) |
+| `holderSecret` / `newHolderSecret` | Private witness | No one |
+
+**Why Midnight:** a transparent chain cannot keep a secret in public storage;
+here the secret is a private witness consumed inside the ZK proof, rotation
+is ZK access control (prove knowledge of the current secret to replace it),
+and proofs are generated in the holder's wallet — the preimage never leaves
+the device.
 
 ## Demo Video
 

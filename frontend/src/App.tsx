@@ -1,3 +1,4 @@
+import { CONTRACT_ADDRESS } from './contract/registry';
 import { WalletConnect } from './components/WalletConnect';
 import { CircuitCall } from './components/CircuitCall';
 
@@ -9,9 +10,7 @@ export default function App() {
         <p className="muted">
           Zero-knowledge credential registry on Midnight · preprod
         </p>
-        <p className="mono small contract-addr">
-          contract: 40919146318915fd52397826f35d3ba9933d64fdbeb173485f73e011f1b428f0
-        </p>
+        <p className="mono small contract-addr">contract: {CONTRACT_ADDRESS}</p>
       </header>
       <WalletConnect />
       <CircuitCall />

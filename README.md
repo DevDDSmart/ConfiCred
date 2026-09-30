@@ -11,25 +11,26 @@
 **https://frontend-chi-sandy-60.vercel.app**
 
 Open the URL, connect the **Lace** wallet extension (Midnight preprod
-network), and register a credential — the proof is generated locally in your
-browser and only the commitment of your secret lands on-chain.
+network), and register a credential — the proof is generated on your machine
+inside the Lace wallet and only the commitment of your secret lands on-chain.
 
 ## Contract Address
 
 | Network  | Address |
 |----------|---------|
 | Preview  | `3c4b03db566b9046600dc77c68660f5370f97c860665fa85737ee2c1382b0c73` |
-| Preprod  | `40919146318915fd52397826f35d3ba9933d64fdbeb173485f73e011f1b428f0` |
+| Preprod  | `41a259a5c805adfc15885a02498c98b04acafd95bb0b0575398cffbe631b9989` |
 
-Both addresses are deployments of **this project's contract**
-(`contracts/credential-registry.compact`, v2 — 7 circuits / 6 ledger
-declarations), live and indexer-verified. On preprod, the **full credential
-lifecycle** (register → rotate → suspend → reinstate → revoke) was executed
-on-chain and every state transition was verified through the indexer —
-see `npm run verify:circuits`.
-(Superseded v1 deployments of the same contract: preview
+The preprod address above is the **registered Level-1 deployment** of this
+project's contract (`contracts/credential-registry.compact`) and is the exact
+address the deployed frontend calls (see
+`frontend/src/contract/registry.ts`). Both addresses are live and
+indexer-verified; the full credential **lifecycle** (register → rotate →
+suspend → reinstate → revoke) was executed on-chain with every state
+transition verified through the indexer — see `npm run verify:circuits`.
+(Later redeploys of the same contract: preview
 `b679d86221ed2893ffd6be94fef8aac1222ed592b2fdf43f9d70f260e206853e`, preprod
-`41a259a5c805adfc15885a02498c98b04acafd95bb0b0575398cffbe631b9989`. The
+`40919146318915fd52397826f35d3ba9933d64fdbeb173485f73e011f1b428f0`. The
 Step-3 hello-world deploy used for toolchain bring-up was
 `1e30c98f91c424e406029a62f8a4bf73aa1c5c22ab702173e5ba3142bcde8c28` on preview.)
 
@@ -37,8 +38,9 @@ Step-3 hello-world deploy used for toolchain bring-up was
 
 ConfiCred is a privacy-preserving credential registry **dApp** with a full
 lifecycle. The frontend (`frontend/`, React + Vite) connects the Lace wallet,
-calls the `registerCredential` circuit with **proof generation in the
-browser**, submits the transaction on-chain through the wallet, and reads the
+calls the `registerCredential` circuit with **proof generation on the user's
+machine inside the Lace wallet**, submits the transaction on-chain through
+the wallet, and reads the
 public registry state back from the indexer. The contract underneath supports
 **rotation** (proving knowledge of the current secret — ZK access control),
 **suspension / reinstatement** (temporary invalidation), and **terminal
@@ -83,22 +85,30 @@ counters, and the status flags. Transaction payloads contain only these
 public values plus ZK proofs.
 
 **What an on-chain observer cannot see:** the holder's secret itself — it is
-a circuit witness consumed entirely inside the locally generated proof. It is
-typed into the dApp as a password field, never rendered back, never logged,
-never stored, and never transmitted: in the UI it exists only in component
-memory (cleared immediately after use), and on-chain only its hash is
-visible. An observer cannot recover the secret from the commitment, cannot
-forge ownership of a credential, and cannot link two credentials registered
-with different secrets to the same holder. The unit test suite asserts the
-hiding property mechanically: it serializes the entire public ledger state
-and asserts the secret (string and hex) appears nowhere in it.
+a circuit witness consumed entirely inside the proof, which is generated on
+the user's machine: the dApp hands the wallet the circuit's public key
+material and Lace proves **inside the extension** (`dappConnectorProvingProvider`),
+so no proof preimage leaves the device. (On an older Lace build without
+proving delegation the dApp falls back to the public preprod proof server and
+says so in the UI — the serialized preimage contains the witness in encrypted
+circuit form, never as plaintext.) The secret is typed into the dApp as a
+password field, never rendered back, never logged, never stored, and never
+transmitted: in the UI it exists only in component memory (cleared
+immediately after use), and on-chain only its hash is visible. An observer
+cannot recover the secret from the commitment, cannot forge ownership of a
+credential, and cannot link two credentials registered with different secrets
+to the same holder. The unit test suite asserts the hiding property
+mechanically: it serializes the entire public ledger state and asserts the
+secret (string and hex) appears nowhere in it.
 
 ## Tech Stack
 
 - **Midnight Network** (preprod; local devnet for development)
 - **Compact** — Midnight's zero-knowledge contract language (compiler `0.5.3`)
 - **Midnight.js SDK** (`@midnight-ntwrk/midnight-js` 4.1.1) + **DApp
-  Connector API** (`@midnight-ntwrk/dapp-connector-api` 4.0.1)
+  Connector API** (`@midnight-ntwrk/dapp-connector-api` 4.0.1) +
+  **wallet-side proving** (`@midnight-ntwrk/midnight-js-dapp-connector-proof-provider`)
+  — proofs are generated inside the Lace wallet on the user's machine
 - **React 18 + Vite 5 + TypeScript** (frontend in `frontend/`)
 - **Lace wallet** browser extension (Midnight preprod network)
 - **Node.js** v22+ (tested on v24), **vitest**, **Docker + Compose**

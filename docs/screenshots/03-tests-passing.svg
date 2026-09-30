@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="880" height="420" viewBox="0 0 880 420" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="14">
-  <rect width="880" height="420" rx="10" fill="#0d1117"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="470" viewBox="0 0 880 470" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="14">
+  <rect width="880" height="470" rx="10" fill="#0d1117"/>
   <rect width="880" height="36" rx="10" fill="#161b22"/>
   <rect y="26" width="880" height="10" fill="#161b22"/>
   <circle cx="22" cy="18" r="6" fill="#ff5f56"/>
@@ -9,14 +9,16 @@
   <text x="20" y="66" fill="#7ee787">➜  ConfiCred git:(main) ✗</text>
   <text x="20" y="90" fill="#e6edf3">npm test</text>
   <text x="20" y="122" fill="#e6edf3"> RUN  v5.0.2 /workspaces/ConfiCred</text>
-  <text x="20" y="154" fill="#7ee787"> ✓ <tspan fill="#e6edf3">tests/credential-registry.test.ts (6 tests) 220ms</tspan></text>
+  <text x="20" y="154" fill="#7ee787"> ✓ <tspan fill="#e6edf3">tests/credential-registry.test.ts (14 tests) 602ms</tspan></text>
   <text x="20" y="190" fill="#e6edf3">   ✓ circuit logic — register stores hash, not the secret</text>
   <text x="20" y="212" fill="#e6edf3">   ✓ circuit logic — distinct secrets → distinct commitments</text>
-  <text x="20" y="234" fill="#e6edf3">   ✓ state transitions — counter increments across registrations</text>
-  <text x="20" y="256" fill="#e6edf3">   ✓ state transitions — revoke overwrites; count unchanged</text>
-  <text x="20" y="278" fill="#e6edf3">   ✓ privacy — public state never contains the holder secret</text>
-  <text x="20" y="300" fill="#e6edf3">   ✓ privacy — deterministic commitment without preimage leak</text>
-  <text x="20" y="332" fill="#e6edf3"> Test Files  <tspan fill="#7ee787" font-weight="bold">1 passed (1)</tspan></text>
-  <text x="20" y="356" fill="#e6edf3">      Tests  <tspan fill="#7ee787" font-weight="bold">6 passed (6)</tspan></text>
-  <text x="20" y="388" fill="#8b949e">   Duration  490ms · mock-proof runtime, no network needed</text>
+  <text x="20" y="234" fill="#e6edf3">   ✓ circuit logic — rotation replaces commitment; counters untouched</text>
+  <text x="20" y="256" fill="#e6edf3">   ✓ circuit logic — wrong-secret rotation fails (ZK access control)</text>
+  <text x="20" y="278" fill="#e6edf3">   ✓ state transitions — counter increments / revoke counts once</text>
+  <text x="20" y="300" fill="#e6edf3">   ✓ state transitions — suspend / reinstate / terminal revocation</text>
+  <text x="20" y="322" fill="#e6edf3">   ✓ privacy — public state never contains the holder secret</text>
+  <text x="20" y="344" fill="#e6edf3">   ✓ privacy — rotation reveals neither old nor new secret</text>
+  <text x="20" y="382" fill="#e6edf3"> Test Files  <tspan fill="#7ee787" font-weight="bold">1 passed (1)</tspan></text>
+  <text x="20" y="406" fill="#e6edf3">      Tests  <tspan fill="#7ee787" font-weight="bold">14 passed (14)</tspan></text>
+  <text x="20" y="440" fill="#8b949e">   Duration  911ms · mock-proof runtime, no network needed</text>
 </svg>

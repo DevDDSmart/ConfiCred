@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="560" viewBox="0 0 880 560" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="14">
+  <rect width="880" height="560" rx="10" fill="#0d1117"/>
+  <rect width="880" height="36" rx="10" fill="#161b22"/>
+  <rect y="26" width="880" height="10" fill="#161b22"/>
+  <circle cx="22" cy="18" r="6" fill="#ff5f56"/>
+  <circle cx="42" cy="18" r="6" fill="#ffbd2e"/>
+  <circle cx="62" cy="18" r="6" fill="#27c93f"/>
+  <text x="440" y="23" text-anchor="middle" fill="#8b949e" font-size="12">npm run verify:circuits -- --network preprod — full lifecycle</text>
+  <text x="20" y="66" fill="#7ee787">➜  ConfiCred git:(main) ✗</text>
+  <text x="20" y="90" fill="#e6edf3">npm run verify:circuits -- --network preprod</text>
+  <text x="20" y="118" fill="#e6edf3">  Contract: <tspan fill="#79c0ff">40919146318915fd52397826f35d3ba9933d64fdbeb173485f73e011f1b428f0</tspan></text>
+  <text x="20" y="138" fill="#e6edf3">  Pre-state: issuer=0 totalCredentials=0 totalRevoked=0</text>
+  <text x="20" y="170" fill="#e6edf3">  [1/5] registerCredential → <tspan fill="#7ee787">tx 00869637… block=2774336</tspan></text>
+  <text x="20" y="190" fill="#7ee787">  ✓ Registered: total=1 revokedFlag=0 commitment=4b60fe14…</text>
+  <text x="20" y="218" fill="#e6edf3">  [2/5] rotateCredential (old secret → new secret) → <tspan fill="#7ee787">tx 0041fbc0… block=2774340</tspan></text>
+  <text x="20" y="238" fill="#7ee787">  ✓ Rotated: commitment=9858daaf… (ZK access control; counters untouched)</text>
+  <text x="20" y="266" fill="#e6edf3">  [3/5] suspendCredential → <tspan fill="#7ee787">tx 0050bca7… block=2774344</tspan></text>
+  <text x="20" y="286" fill="#7ee787">  ✓ Suspended: suspendedFlag=1 digest=suspended</text>
+  <text x="20" y="314" fill="#e6edf3">  [4/5] reinstateCredential → <tspan fill="#7ee787">tx 00b8e836… block=2774348</tspan></text>
+  <text x="20" y="334" fill="#7ee787">  ✓ Reinstated: suspendedFlag=0 digest=active</text>
+  <text x="20" y="362" fill="#e6edf3">  [5/5] revokeCredential → <tspan fill="#7ee787">tx 00461d5c… block=2774352</tspan></text>
+  <text x="20" y="382" fill="#7ee787">  ✓ Revoked: revokedFlag=1 digest=revoked totalRevoked=0→1</text>
+  <text x="20" y="422" fill="#7ee787" font-weight="bold">  ✅ FULL LIFECYCLE VERIFIED END-TO-END (5 circuits on-chain)</text>
+  <text x="20" y="452" fill="#e6edf3">     network:    preprod</text>
+  <text x="20" y="472" fill="#e6edf3">     contract:   40919146318915fd52397826f35d3ba9933d64fdbeb173485f73e011f1b428f0</text>
+  <text x="20" y="492" fill="#8b949e">     register · rotate · suspend · reinstate · revoke — all indexer-confirmed</text>
+  <text x="20" y="524" fill="#8b949e">     credential: conficred-verify-1790763697132-88b3163a</text>
+</svg>

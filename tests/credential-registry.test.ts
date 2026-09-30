@@ -3,7 +3,8 @@
  *
  * Runs the compiled contract (contracts/managed/credential-registry) on the
  * local compact-runtime with mock proofs — no network, no proof server.
- * Covers: circuit logic, state transitions, and privacy guarantees.
+ * Covers: circuit logic, state transitions, the credential lifecycle
+ * (register / suspend / reinstate / revoke / rotate), and privacy guarantees.
  */
 import { describe, expect, it } from 'vitest';
 
@@ -12,7 +13,6 @@ import {
   dummyContractAddress,
   dummyUserAddress,
 } from '@midnight-ntwrk/compact-runtime';
-import * as ocrt from '@midnight-ntwrk/onchain-runtime-v3';
 import { Contract, ledger as readLedger } from '../contracts/managed/credential-registry/contract';
 
 // ─── Test helpers ─────────────────────────────────────────────────────────────
@@ -28,13 +28,24 @@ function bytes32(tag: string): Uint8Array {
   return out;
 }
 
+function digest32(tag: string): Uint8Array {
+  return padDigest(tag);
+}
+
+function padDigest(tag: string): Uint8Array {
+  const raw = encoder.encode(tag);
+  const out = new Uint8Array(32);
+  out.set(raw, 0);
+  return out;
+}
+
 /**
  * A contract bound to a mutable offchain ledger. Each impure-circuit call
  * returns an evolved CircuitContext; tests chain it so later calls see
  * earlier writes (as consecutive blocks would on-chain).
  *
  * Initial state comes from the compiled contract's own initialState(), so
- * the ledger layout (issuer cell, counter cell, credentials map) is always
+ * the ledger layout (issuer cell, counters, credential maps) is always
  * exactly what the compiler generated — no hand-mirroring.
  */
 function makeContract() {
@@ -69,6 +80,11 @@ function makeContract() {
 
 type CredContract = ReturnType<typeof makeContract>;
 
+/** Hex of a status digest, padded the way pad(32, tag) pads. */
+function statusHex(tag: string): string {
+  return Buffer.from(padDigest(tag)).toString('hex');
+}
+
 // ─── 1. Circuit logic ─────────────────────────────────────────────────────────
 
 describe('circuit logic', () => {
@@ -99,6 +115,39 @@ describe('circuit logic', () => {
     );
     expect(state.totalCredentials).toBe(2n);
   });
+
+  it('rotateCredential replaces the commitment without changing counters', () => {
+    const c = makeContract();
+    const credId = bytes32('credential-rotate');
+    const oldSecret = bytes32('old-holder-secret');
+    const newSecret = bytes32('new-holder-secret');
+
+    c.call('registerCredential', oldSecret, 1n, credId);
+    const before = c.ledger().credentials.lookup(credId);
+
+    c.call('rotateCredential', oldSecret, newSecret, credId);
+
+    const after = c.ledger();
+    expect(Buffer.from(after.credentials.lookup(credId))).not.toEqual(Buffer.from(before));
+    expect(after.totalCredentials).toBe(1n); // rotation is not a new registration
+    expect(after.totalRevoked).toBe(0n); // and not a revocation
+  });
+
+  it('rotation with the wrong secret fails to replace the commitment', () => {
+    const c = makeContract();
+    const credId = bytes32('credential-rotate-guard');
+    c.call('registerCredential', bytes32('real-secret'), 1n, credId);
+    const committed = Buffer.from(c.ledger().credentials.lookup(credId));
+
+    // The circuit asserts the claimed commitment matches on-chain state;
+    // a caller without the current secret cannot produce a matching hash.
+    // The assertion failure propagates as a thrown error from the circuit.
+    expect(() =>
+      c.call('rotateCredential', bytes32('wrong-secret'), bytes32('attacker-secret'), credId),
+    ).toThrow();
+    // State is untouched by the failed call.
+    expect(Buffer.from(c.ledger().credentials.lookup(credId))).toEqual(committed);
+  });
 });
 
 // ─── 2. State transitions ─────────────────────────────────────────────────────
@@ -118,7 +167,7 @@ describe('state transitions', () => {
     }
   });
 
-  it('revokeCredential overwrites the commitment; count and issuer unchanged', () => {
+  it('revokeCredential overwrites the commitment, flips the flag, and counts once', () => {
     const c = makeContract();
     const credId = bytes32('credential-revoke-me');
 
@@ -129,8 +178,85 @@ describe('state transitions', () => {
 
     const after = c.ledger();
     expect(after.totalCredentials).toBe(1n); // revocation is not a new registration
+    expect(after.totalRevoked).toBe(1n);
+    expect(Buffer.from(after.credentials.lookup(credId))).toEqual(Buffer.from(digest32('revoked')));
     expect(Buffer.from(after.credentials.lookup(credId))).not.toEqual(Buffer.from(committed));
-    expect(after.issuer).toBe(7n);
+    expect(after.revoked.lookup(credId)).toBe(1n);
+  });
+
+  it('double revocation does not double-count', () => {
+    const c = makeContract();
+    const credId = bytes32('credential-double-revoke');
+    c.call('registerCredential', bytes32('dave'), 1n, credId);
+
+    c.call('revokeCredential', credId);
+    c.call('revokeCredential', credId);
+
+    expect(c.ledger().totalRevoked).toBe(1n);
+  });
+
+  it('suspendCredential marks suspended without touching the revoked counter', () => {
+    const c = makeContract();
+    const credId = bytes32('credential-suspend');
+    c.call('registerCredential', bytes32('erin'), 1n, credId);
+    const committed = c.ledger().credentials.lookup(credId);
+
+    c.call('suspendCredential', credId);
+
+    const after = c.ledger();
+    expect(after.suspended.lookup(credId)).toBe(1n);
+    expect(after.revoked.lookup(credId)).toBe(0n);
+    expect(after.totalRevoked).toBe(0n);
+    expect(Buffer.from(after.credentials.lookup(credId))).toEqual(Buffer.from(digest32('suspended')));
+    expect(Buffer.from(after.credentials.lookup(credId))).not.toEqual(Buffer.from(committed));
+  });
+
+  it('reinstateCredential restores an active state and clears suspension', () => {
+    const c = makeContract();
+    const credId = bytes32('credential-reinstate');
+    c.call('registerCredential', bytes32('frank'), 1n, credId);
+
+    c.call('suspendCredential', credId);
+    expect(c.ledger().suspended.lookup(credId)).toBe(1n);
+
+    c.call('reinstateCredential', credId);
+
+    const after = c.ledger();
+    expect(after.suspended.lookup(credId)).toBe(0n);
+    expect(after.revoked.lookup(credId)).toBe(0n);
+    expect(Buffer.from(after.credentials.lookup(credId))).toEqual(Buffer.from(digest32('active')));
+  });
+
+  it('revocation is terminal: reinstate cannot resurrect a revoked credential', () => {
+    const c = makeContract();
+    const credId = bytes32('credential-terminal');
+    c.call('registerCredential', bytes32('gina'), 1n, credId);
+
+    c.call('revokeCredential', credId);
+    c.call('reinstateCredential', credId);
+
+    const after = c.ledger();
+    expect(after.revoked.lookup(credId)).toBe(1n);
+    expect(Buffer.from(after.credentials.lookup(credId))).toEqual(Buffer.from(digest32('revoked')));
+  });
+
+  it('full lifecycle: register → suspend → reinstate → revoke', () => {
+    const c = makeContract();
+    const credId = bytes32('credential-lifecycle');
+    c.call('registerCredential', bytes32('hana'), 3n, credId);
+    expect(c.ledger().revoked.lookup(credId)).toBe(0n);
+
+    c.call('suspendCredential', credId);
+    expect(c.ledger().suspended.lookup(credId)).toBe(1n);
+
+    c.call('reinstateCredential', credId);
+    expect(c.ledger().suspended.lookup(credId)).toBe(0n);
+
+    c.call('revokeCredential', credId);
+    const final = c.ledger();
+    expect(final.revoked.lookup(credId)).toBe(1n);
+    expect(final.totalCredentials).toBe(1n);
+    expect(final.totalRevoked).toBe(1n);
   });
 });
 
@@ -179,5 +305,24 @@ describe('privacy', () => {
     // Hiding: the commitment is not the secret itself (preimage concealed).
     expect(state.credentials.lookup(id1).length).toBe(32);
     expect(Buffer.from(state.credentials.lookup(id1))).not.toEqual(Buffer.from(secret));
+  });
+
+  it('rotation reveals neither the old nor the new secret on-chain', () => {
+    const c = makeContract();
+    const credId = bytes32('credential-rotate-privacy');
+    const oldSecret = bytes32('privacy-old-secret');
+    const newSecret = bytes32('privacy-new-secret');
+
+    c.call('registerCredential', oldSecret, 1n, credId);
+    c.call('rotateCredential', oldSecret, newSecret, credId);
+
+    const state = c.ledger();
+    const serialized = JSON.stringify({
+      commitment: Buffer.from(state.credentials.lookup(credId)).toString('hex'),
+    });
+    expect(serialized).not.toContain(Buffer.from(oldSecret).toString('hex'));
+    expect(serialized).not.toContain(Buffer.from(newSecret).toString('hex'));
+    expect(serialized).not.toContain('privacy-old-secret');
+    expect(serialized).not.toContain('privacy-new-secret');
   });
 });

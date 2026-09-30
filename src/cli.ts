@@ -215,8 +215,16 @@ async function main() {
               const ledgerState = CredentialRegistry.ledger(contractState.data);
               console.log(`\n  📋 Issuer:            ${ledgerState.issuer}`);
               console.log(`  📋 Total credentials: ${ledgerState.totalCredentials}`);
-              const creds = Array.from(ledgerState.credentials, ([k, v]: [Uint8Array, Uint8Array]) =>
-                [Buffer.from(k).toString('hex').slice(0, 16) + '…', Buffer.from(v).toString('hex').slice(0, 16) + '…']);
+              console.log(`  📋 Total revoked:     ${ledgerState.totalRevoked}`);
+              const creds = Array.from(ledgerState.credentials, ([k, v]: [Uint8Array, Uint8Array]) => {
+                const vh = Buffer.from(v).toString('hex');
+                const tag =
+                  vh === Buffer.from(new TextEncoder().encode('revoked')).toString('hex').padEnd(64, '0') ? 'REVOKED'
+                  : vh === Buffer.from(new TextEncoder().encode('suspended')).toString('hex').padEnd(64, '0') ? 'SUSPENDED'
+                  : vh === Buffer.from(new TextEncoder().encode('active')).toString('hex').padEnd(64, '0') ? 'ACTIVE (reinstated)'
+                  : 'registered';
+                return [Buffer.from(k).toString('hex').slice(0, 16) + '…', `${vh.slice(0, 16)}… (${tag})`];
+              });
               console.log(`  📋 Credentials (id → commitment):`);
               for (const [id, comm] of creds) console.log(`      ${id} → ${comm}`);
               console.log('');

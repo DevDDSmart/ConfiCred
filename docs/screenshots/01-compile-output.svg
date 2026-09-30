@@ -1,20 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="880" height="360" viewBox="0 0 880 360" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="14">
-  <rect width="880" height="360" rx="10" fill="#0d1117"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="380" viewBox="0 0 880 380" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="14">
+  <rect width="880" height="380" rx="10" fill="#0d1117"/>
   <rect width="880" height="36" rx="10" fill="#161b22"/>
   <rect y="26" width="880" height="10" fill="#161b22"/>
   <circle cx="22" cy="18" r="6" fill="#ff5f56"/>
   <circle cx="42" cy="18" r="6" fill="#ffbd2e"/>
   <circle cx="62" cy="18" r="6" fill="#27c93f"/>
-  <text x="440" y="23" text-anchor="middle" fill="#8b949e" font-size="12">compact compile — ConfiCred</text>
+  <text x="440" y="23" text-anchor="middle" fill="#8b949e" font-size="12">compact compile — ConfiCred (v2)</text>
   <text x="20" y="66" fill="#7ee787">➜  ConfiCred git:(main) ✗</text>
   <text x="20" y="90" fill="#e6edf3">npm run compile</text>
   <text x="20" y="122" fill="#e6edf3">&gt; conficred@1.0.0 compile</text>
   <text x="20" y="142" fill="#e6edf3">&gt; compact compile contracts/credential-registry.compact contracts/managed/credential-registry</text>
-  <text x="20" y="174" fill="#e6edf3">Compiling <tspan fill="#79c0ff" font-weight="bold">2 circuits</tspan>:</text>
+  <text x="20" y="174" fill="#e6edf3">Compiling <tspan fill="#79c0ff" font-weight="bold">5 circuits</tspan>:</text>
   <text x="20" y="206" fill="#7ee787">✔ circuits compiled — proving + verifier keys written</text>
   <text x="20" y="238" fill="#7ee787">➜  ConfiCred git:(main) ✗</text>
   <text x="20" y="262" fill="#e6edf3">ls contracts/managed/credential-registry/keys/</text>
-  <text x="20" y="294" fill="#e6edf3">registerCredential.prover    registerCredential.verifier</text>
-  <text x="20" y="314" fill="#e6edf3">revokeCredential.prover      revokeCredential.verifier</text>
-  <text x="20" y="344" fill="#8b949e">compact 0.5.3 · exit code 0</text>
+  <text x="20" y="294" fill="#e6edf3">registerCredential.prover     registerCredential.verifier</text>
+  <text x="20" y="314" fill="#e6edf3">rotateCredential.prover       rotateCredential.verifier</text>
+  <text x="20" y="334" fill="#e6edf3">suspendCredential.prover      suspendCredential.verifier</text>
+  <text x="20" y="354" fill="#e6edf3">reinstateCredential.prover    reinstateCredential.verifier</text>
+  <text x="20" y="374" fill="#e6edf3">revokeCredential.prover       revokeCredential.verifier</text>
+  <text x="740" y="404" fill="#8b949e" transform="translate(-720,0)">compact 0.5.3 · exit code 0</text>
 </svg>

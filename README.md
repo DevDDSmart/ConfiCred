@@ -8,39 +8,55 @@
 
 | Network  | Address |
 |----------|---------|
-| Preview  | `b679d86221ed2893ffd6be94fef8aac1222ed592b2fdf43f9d70f260e206853e` |
-| Preprod  | `41a259a5c805adfc15885a02498c98b04acafd95bb0b0575398cffbe631b9989` |
+| Preview  | `3c4b03db566b9046600dc77c68660f5370f97c860665fa85737ee2c1382b0c73` |
+| Preprod  | `40919146318915fd52397826f35d3ba9933d64fdbeb173485f73e011f1b428f0` |
 
 Both addresses are deployments of **this project's contract**
-(`contracts/credential-registry.compact`), live and indexer-verified.
-(The Step-3 hello-world deploy used for toolchain bring-up was
+(`contracts/credential-registry.compact`, v2 — 7 circuits / 6 ledger
+declarations), live and indexer-verified. On preprod, the **full credential
+lifecycle** (register → rotate → suspend → reinstate → revoke) was executed
+on-chain and every state transition was verified through the indexer —
+see `npm run verify:circuits`.
+(Superseded v1 deployments of the same contract: preview
+`b679d86221ed2893ffd6be94fef8aac1222ed592b2fdf43f9d70f260e206853e`, preprod
+`41a259a5c805adfc15885a02498c98b04acafd95bb0b0575398cffbe631b9989`. The
+Step-3 hello-world deploy used for toolchain bring-up was
 `1e30c98f91c424e406029a62f8a4bf73aa1c5c22ab702173e5ba3142bcde8c28` on preview.)
 
 ## What This Does
 
-ConfiCred is a privacy-preserving credential registry. An issuer enrolls a
-credential by submitting the holder's *secret* (a 32-byte value known only
-to the holder) through a ZK circuit; the chain stores only a hash commitment
-under a publicly disclosed credential ID. Anyone can audit that a credential
-exists and whether it has been revoked — but nobody, not even the issuer's
-on-chain footprint, can learn the holder's secret or forge ownership of a
-credential. Revocation overwrites the commitment with a public zero digest,
-so status checks are a simple on-chain read.
+ConfiCred is a privacy-preserving credential registry with a full lifecycle.
+An issuer enrolls a credential by submitting the holder's *secret* (a 32-byte
+value known only to the holder) through a ZK circuit; the chain stores only a
+hash commitment under a publicly disclosed credential ID. The registry
+supports **rotation** (the holder replaces their secret by proving knowledge
+of the current one — ZK access control), **suspension / reinstatement**
+(temporary invalidation, e.g. under investigation), and **terminal
+revocation** with a public counter. Anyone can audit that a credential exists
+and what state it is in — but nobody, not even the issuer's on-chain
+footprint, can learn the holder's secret or forge ownership of a credential.
 
 ## Privacy Model
 
 - **What is PUBLIC (on-chain, visible to anyone):**
   - `issuer` — the issuer ID of the registry
-  - `totalCredentials` — how many credentials have been registered
+  - `totalCredentials` / `totalRevoked` — lifecycle counters
   - `credentials` — map from disclosed credential-ID (32-byte digest) to its
-    owner *commitment* (a hash), and the revocation marker (zero digest)
+    owner *commitment* (a hash) or a status digest (`suspended` / `active` /
+    `revoked`)
+  - `revoked` / `suspended` — flat status-flag maps (1/0) per credential ID
 - **What is PRIVATE (private witness, never on-chain):**
   - `holderSecret` — the credential holder's 32-byte secret, consumed only
     inside the ZK proof. It never appears in any ledger state or transaction
     payload.
+  - `newHolderSecret` — the replacement secret during rotation.
 - **What the user PROVES without revealing:**
   - That they know the `holderSecret` whose hash is the on-chain commitment —
     i.e. ownership of the credential — without disclosing the secret itself.
+  - During **rotation**: that they know the *current* secret (the equality
+    against the on-chain commitment is enforced inside the proof, so a wrong
+    secret fails the transaction) and the hash of the replacement — revealing
+    neither.
 
 ## Tech Stack
 
@@ -86,14 +102,15 @@ npm run test:e2e
 ## Run Tests
 
 ```bash
-npm test            # 6 unit tests: circuit logic, state transitions, privacy
+npm test            # 14 unit tests: circuit logic, lifecycle, privacy
 npm run test:e2e    # live read-back against the deployed contract
-npm run verify:circuits   # full register→verify→revoke→verify on-chain round-trip
+npm run verify:circuits   # full register→rotate→suspend→reinstate→revoke on-chain round-trip
 ```
 
 The unit suite runs the compiled contract on the local compact-runtime with
 mock proofs — no network or proof server needed — and covers circuit logic,
-state transitions, and that private inputs are never exposed in public state.
+the full credential lifecycle (including the wrong-secret rotation guard),
+and that private inputs are never exposed in public state.
 
 ## Initial Idea
 
@@ -127,7 +144,7 @@ verifiers actually meet.
 
 ## Screenshots
 
-### Compact compile — 2 circuits, proving + verifier keys generated
+### Compact compile — 5 circuits compiled, 10 key artifacts generated
 
 ![compile output](docs/screenshots/01-compile-output.svg)
 
@@ -135,9 +152,13 @@ verifiers actually meet.
 
 ![deploy output](docs/screenshots/02-deploy-preview.svg)
 
-### Test suite — 6/6 passing (circuit logic, state transitions, privacy)
+### Test suite — 14/14 passing (circuit logic, lifecycle, privacy)
 
 ![tests passing](docs/screenshots/03-tests-passing.svg)
+
+### Full lifecycle verified on preprod — all 5 state-changing circuits on-chain
+
+![lifecycle verification](docs/screenshots/04-lifecycle-verification.svg)
 
 ## Local devnet
 

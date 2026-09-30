@@ -5,7 +5,7 @@
   <circle cx="22" cy="18" r="6" fill="#ff5f56"/>
   <circle cx="42" cy="18" r="6" fill="#ffbd2e"/>
   <circle cx="62" cy="18" r="6" fill="#27c93f"/>
-  <text x="440" y="23" text-anchor="middle" fill="#8b949e" font-size="12">npm run deploy -- --network preview — ConfiCred</text>
+  <text x="440" y="23" text-anchor="middle" fill="#8b949e" font-size="12">npm run deploy -- --network preview — ConfiCred (v2, 7 circuits)</text>
   <text x="20" y="66" fill="#7ee787">➜  ConfiCred git:(main) ✗</text>
   <text x="20" y="90" fill="#e6edf3">npm run deploy -- --network preview</text>
   <text x="20" y="122" fill="#79c0ff">║  Deploy ConfiCred to preview</text>
@@ -17,8 +17,8 @@
   <text x="20" y="282" fill="#e6edf3">─── Deploy Contract ─────────────────────────────────</text>
   <text x="20" y="306" fill="#e6edf3">  Proof server ready!</text>
   <text x="20" y="330" fill="#7ee787">  ✅ Contract deployed successfully!</text>
-  <text x="20" y="366" fill="#e6edf3">  Contract Address: <tspan fill="#7ee787" font-weight="bold">b679d86221ed2893ffd6be94fef8aac1222ed592b2fdf43f9d70f260e206853e</tspan></text>
+  <text x="20" y="366" fill="#e6edf3">  Contract Address: <tspan fill="#7ee787" font-weight="bold">3c4b03db566b9046600dc77c68660f5370f97c860665fa85737ee2c1382b0c73</tspan></text>
   <text x="20" y="394" fill="#8b949e">  Saved to .midnight-state.json</text>
   <text x="20" y="426" fill="#7ee787">─── Deployment complete ─────────────────────────────</text>
-  <text x="20" y="450" fill="#8b949e">  ✅ verified live: npm run test:e2e -- --network preview  → e2e-check passed</text>
+  <text x="20" y="450" fill="#8b949e">  ✅ e2e verified · circuits: register/rotate/suspend/reinstate/revoke + 2 queries</text>
 </svg>

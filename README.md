@@ -1,5 +1,7 @@
 # ConfiCred
 
+[![CI](https://github.com/DevDDSmart/ConfiCred/actions/workflows/ci.yml/badge.svg)](https://github.com/DevDDSmart/ConfiCred/actions/workflows/ci.yml)
+
 > A zero-knowledge credential registry on Midnight: issuers register
 > tamper-proof commitments to credentials; holders prove ownership without
 > ever revealing their secret.

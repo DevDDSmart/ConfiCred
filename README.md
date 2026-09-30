@@ -1,17 +1,68 @@
 # ConfiCred
 
-A Midnight Network smart contract project — zero-knowledge credentials on a
-privacy-preserving ledger. Built with the Compact language and scaffolded
-from create-mn-app.
+> A zero-knowledge credential registry on Midnight: issuers register
+> tamper-proof commitments to credentials; holders prove ownership without
+> ever revealing their secret.
 
 ## Contract Address
 
 | Network  | Address |
 |----------|---------|
-| Preview  | `1e30c98f91c424e406029a62f8a4bf73aa1c5c22ab702173e5ba3142bcde8c28` |
+| Preview  | `b679d86221ed2893ffd6be94fef8aac1222ed592b2fdf43f9d70f260e206853e` |
 | Preprod  | `41a259a5c805adfc15885a02498c98b04acafd95bb0b0575398cffbe631b9989` |
 
-## Quick start
+Both addresses are deployments of **this project's contract**
+(`contracts/credential-registry.compact`), live and indexer-verified.
+(The Step-3 hello-world deploy used for toolchain bring-up was
+`1e30c98f91c424e406029a62f8a4bf73aa1c5c22ab702173e5ba3142bcde8c28` on preview.)
+
+## What This Does
+
+ConfiCred is a privacy-preserving credential registry. An issuer enrolls a
+credential by submitting the holder's *secret* (a 32-byte value known only
+to the holder) through a ZK circuit; the chain stores only a hash commitment
+under a publicly disclosed credential ID. Anyone can audit that a credential
+exists and whether it has been revoked — but nobody, not even the issuer's
+on-chain footprint, can learn the holder's secret or forge ownership of a
+credential. Revocation overwrites the commitment with a public zero digest,
+so status checks are a simple on-chain read.
+
+## Privacy Model
+
+- **What is PUBLIC (on-chain, visible to anyone):**
+  - `issuer` — the issuer ID of the registry
+  - `totalCredentials` — how many credentials have been registered
+  - `credentials` — map from disclosed credential-ID (32-byte digest) to its
+    owner *commitment* (a hash), and the revocation marker (zero digest)
+- **What is PRIVATE (private witness, never on-chain):**
+  - `holderSecret` — the credential holder's 32-byte secret, consumed only
+    inside the ZK proof. It never appears in any ledger state or transaction
+    payload.
+- **What the user PROVES without revealing:**
+  - That they know the `holderSecret` whose hash is the on-chain commitment —
+    i.e. ownership of the credential — without disclosing the secret itself.
+
+## Tech Stack
+
+- **Midnight Network** (local devnet, preview & preprod testnets)
+- **Compact** — Midnight's zero-knowledge contract language (compiler `0.5.3`)
+- **Node.js** v22+ (tested on v24), **TypeScript**, **vitest**
+- **Docker + Compose** — local node, indexer, and proof-server
+- `@midnight-ntwrk/*` SDK (midnight-js 4.1.1, wallet-sdk 1.2.0, ledger-v8)
+
+## Prerequisites
+
+- Node.js **v22 or newer** (`node --version`)
+- Docker with Compose v2, running
+- The **Compact compiler** (`compact --version` — this project used `0.5.3`):
+  ```bash
+  npm install -g @midnight-ntwrk/compact-compiler
+  ```
+- For public networks: tNIGHT from the
+  [preview](https://midnight-tmnight-preview.nethermind.dev) or
+  [preprod](https://midnight-tmnight-preprod.nethermind.dev) faucet
+
+## Setup
 
 Requirements: Node 22+, Docker (with Compose v2), and the Compact compiler
 (this project was built against `compact 0.5.3`).
@@ -31,6 +82,26 @@ npm run test:e2e
 3. `npm run deploy` — on local devnet: derives the genesis-seed wallet (NIGHT pre-minted), registers UTXOs for DUST generation, deploys the contract, writes `.midnight-state.json`. On `preview`/`preprod`: generates a BIP-39 wallet on first use, waits for faucet funding, then deploys.
 
 `npm run test:e2e` reconnects to the deployed contract and reads its ledger state. Exits 0 if the contract is live and indexable.
+
+## Run Tests
+
+```bash
+npm test            # 6 unit tests: circuit logic, state transitions, privacy
+npm run test:e2e    # live read-back against the deployed contract
+npm run verify:circuits   # full register→verify→revoke→verify on-chain round-trip
+```
+
+The unit suite runs the compiled contract on the local compact-runtime with
+mock proofs — no network or proof server needed — and covers circuit logic,
+state transitions, and that private inputs are never exposed in public state.
+
+## Initial Idea
+
+<!-- TODO: fill in -->
+
+## Screenshots
+
+<!-- TODO: add compile output and contract address screenshots -->
 
 ## Local devnet
 
@@ -227,6 +298,7 @@ generated state.
 ConfiCred/
 ├── contracts/
 │   └── credential-registry.compact  # Compact source
+├── contracts/managed/          # compiler output: circuits + proving keys (gitignored)
 ├── scripts/
 │   ├── e2e-check.ts            # smoke + read-back
 │   └── dust-register.ts        # standalone DUST registration w/ retries
@@ -237,6 +309,9 @@ ConfiCred/
 │   ├── deploy.ts               # deploy the contract
 │   ├── cli.ts                  # interact with deployed contract
 │   └── check-balance.ts        # NIGHT / DUST balance
+├── tests/
+│   └── credential-registry.test.ts  # circuit / state / privacy tests
+├── .github/workflows/ci.yml    # CI: compile + typecheck + tests
 ├── docker-compose.yml          # node + indexer + proof-server
 ├── .midnight-state.json        # written by deploy (gitignored)
 ├── .midnight-wallet-state/     # serialized sync state per network (gitignored)

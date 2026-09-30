@@ -97,11 +97,47 @@ state transitions, and that private inputs are never exposed in public state.
 
 ## Initial Idea
 
-<!-- TODO: fill in -->
+ConfiCred started from a simple question: *when someone shows you a
+credential — a diploma, a license, a membership badge — why do you have to
+call the issuer and trust whatever they say?* Traditional credential systems
+centralize trust: the verifier phones home, the issuer's database becomes a
+honey-pot of personal data, and the holder has zero control over who learns
+what, when.
+
+The idea: put the registry itself on a privacy-preserving ledger. The issuer
+enrolls each credential once, on-chain, as a **commitment** — a hash of a
+secret only the holder knows, bound to a publicly auditable credential ID.
+From then on:
+
+- **anyone can audit** that a credential exists and whether it's been revoked
+  (the credential ID is deliberately disclosed via `disclose()`);
+- **nobody can learn the holder's secret** — it is a private witness,
+  consumed only inside the ZK proof, and never touches ledger state (the test
+  suite asserts this literally by serializing the whole public state and
+  searching it for the secret);
+- **the holder proves ownership** of a credential without revealing anything
+  about themselves beyond what they choose to show.
+
+The result is a registry that is publicly verifiable but privately held —
+trust anchored in cryptography instead of a phone call, with revocation that
+is just as public as registration. Level 1 delivers the core registry
+(compile → test → deploy to preview and preprod → verify every state
+transition on-chain); future levels add the frontend where holders and
+verifiers actually meet.
 
 ## Screenshots
 
-<!-- TODO: add compile output and contract address screenshots -->
+### Compact compile — 2 circuits, proving + verifier keys generated
+
+![compile output](docs/screenshots/01-compile-output.svg)
+
+### Deploy to preview — contract address
+
+![deploy output](docs/screenshots/02-deploy-preview.svg)
+
+### Test suite — 6/6 passing (circuit logic, state transitions, privacy)
+
+![tests passing](docs/screenshots/03-tests-passing.svg)
 
 ## Local devnet
 

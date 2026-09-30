@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="420" viewBox="0 0 880 420" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="14">
+  <rect width="880" height="420" rx="10" fill="#0d1117"/>
+  <rect width="880" height="36" rx="10" fill="#161b22"/>
+  <rect y="26" width="880" height="10" fill="#161b22"/>
+  <circle cx="22" cy="18" r="6" fill="#ff5f56"/>
+  <circle cx="42" cy="18" r="6" fill="#ffbd2e"/>
+  <circle cx="62" cy="18" r="6" fill="#27c93f"/>
+  <text x="440" y="23" text-anchor="middle" fill="#8b949e" font-size="12">npm test (vitest) — ConfiCred</text>
+  <text x="20" y="66" fill="#7ee787">➜  ConfiCred git:(main) ✗</text>
+  <text x="20" y="90" fill="#e6edf3">npm test</text>
+  <text x="20" y="122" fill="#e6edf3"> RUN  v5.0.2 /workspaces/ConfiCred</text>
+  <text x="20" y="154" fill="#7ee787"> ✓ <tspan fill="#e6edf3">tests/credential-registry.test.ts (6 tests) 220ms</tspan></text>
+  <text x="20" y="190" fill="#e6edf3">   ✓ circuit logic — register stores hash, not the secret</text>
+  <text x="20" y="212" fill="#e6edf3">   ✓ circuit logic — distinct secrets → distinct commitments</text>
+  <text x="20" y="234" fill="#e6edf3">   ✓ state transitions — counter increments across registrations</text>
+  <text x="20" y="256" fill="#e6edf3">   ✓ state transitions — revoke overwrites; count unchanged</text>
+  <text x="20" y="278" fill="#e6edf3">   ✓ privacy — public state never contains the holder secret</text>
+  <text x="20" y="300" fill="#e6edf3">   ✓ privacy — deterministic commitment without preimage leak</text>
+  <text x="20" y="332" fill="#e6edf3"> Test Files  <tspan fill="#7ee787" font-weight="bold">1 passed (1)</tspan></text>
+  <text x="20" y="356" fill="#e6edf3">      Tests  <tspan fill="#7ee787" font-weight="bold">6 passed (6)</tspan></text>
+  <text x="20" y="388" fill="#8b949e">   Duration  490ms · mock-proof runtime, no network needed</text>
+</svg>

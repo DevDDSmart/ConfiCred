@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="470" viewBox="0 0 880 470" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="14">
+  <rect width="880" height="470" rx="10" fill="#0d1117"/>
+  <rect width="880" height="36" rx="10" fill="#161b22"/>
+  <rect y="26" width="880" height="10" fill="#161b22"/>
+  <circle cx="22" cy="18" r="6" fill="#ff5f56"/>
+  <circle cx="42" cy="18" r="6" fill="#ffbd2e"/>
+  <circle cx="62" cy="18" r="6" fill="#27c93f"/>
+  <text x="440" y="23" text-anchor="middle" fill="#8b949e" font-size="12">npm run deploy -- --network preview — ConfiCred</text>
+  <text x="20" y="66" fill="#7ee787">➜  ConfiCred git:(main) ✗</text>
+  <text x="20" y="90" fill="#e6edf3">npm run deploy -- --network preview</text>
+  <text x="20" y="122" fill="#79c0ff">║  Deploy ConfiCred to preview</text>
+  <text x="20" y="154" fill="#e6edf3">─── Wallet Setup ────────────────────────────────────</text>
+  <text x="20" y="178" fill="#e6edf3">  Wallet Address: <tspan fill="#79c0ff">mn_addr_preview18nmhwurcrqsrzsek73c8w2u8nkteegdfa8reddrnn8hjak6vgxhs2fc3w3</tspan></text>
+  <text x="20" y="202" fill="#e6edf3">  Balance: 5,000,000,000 tNight</text>
+  <text x="20" y="226" fill="#e6edf3">─── DUST Token Setup ────────────────────────────────</text>
+  <text x="20" y="250" fill="#7ee787">  DUST tokens ready!</text>
+  <text x="20" y="282" fill="#e6edf3">─── Deploy Contract ─────────────────────────────────</text>
+  <text x="20" y="306" fill="#e6edf3">  Proof server ready!</text>
+  <text x="20" y="330" fill="#7ee787">  ✅ Contract deployed successfully!</text>
+  <text x="20" y="366" fill="#e6edf3">  Contract Address: <tspan fill="#7ee787" font-weight="bold">b679d86221ed2893ffd6be94fef8aac1222ed592b2fdf43f9d70f260e206853e</tspan></text>
+  <text x="20" y="394" fill="#8b949e">  Saved to .midnight-state.json</text>
+  <text x="20" y="426" fill="#7ee787">─── Deployment complete ─────────────────────────────</text>
+  <text x="20" y="450" fill="#8b949e">  ✅ verified live: npm run test:e2e -- --network preview  → e2e-check passed</text>
+</svg>

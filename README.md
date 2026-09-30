@@ -146,7 +146,9 @@ secret (string and hex) appears nowhere in it.
   [preview](https://midnight-tmnight-preview.nethermind.dev) or
   [preprod](https://midnight-tmnight-preprod.nethermind.dev) faucet
 
-## Setup
+## Setup & Run Locally
+
+### 1. Contract toolchain (repo root)
 
 Requirements: Node 22+, Docker (with Compose v2), and the Compact toolchain.
 
@@ -166,7 +168,7 @@ npm run test:e2e
 
 `npm run test:e2e` reconnects to the deployed contract and reads its ledger state. Exits 0 if the contract is live and indexable.
 
-## Run Locally
+### 2. Frontend (dApp)
 
 ```bash
 git clone https://github.com/DevDDSmart/ConfiCred.git
@@ -186,27 +188,6 @@ Deployment to Vercel: see [DEPLOY.md](DEPLOY.md) (`cd frontend && vercel
 --prod --yes`); `vercel.json` ships SPA rewrites and caching for the ZK
 artifacts.
 
-## Demo Video
-
-**Draft demo (auto-recorded, full dApp flow): [`docs/demo/conficred-demo.mp4`](docs/demo/conficred-demo.mp4)**
-
-<!-- PLACEHOLDER — replace/add the link after recording the final video with real Lace (see docs/demo/WALLET-SCENES.md) -->
-
-**Recording checklist (under 2 minutes):**
-
-1. **Connect Lace** — show the wallet address appearing on screen after
-   connecting (0:00–0:20).
-2. **Call the circuit** — type a holder secret (masked), click *Register
-   credential*, and show the **loading state** during local proof generation
-   (0:20–1:00).
-3. **On-chain result** — show the tx id / block height in the success panel,
-   then refresh the *On-chain registry* read-back showing `totalCredentials`
-   increment (1:00–1:30).
-4. **Privacy point** — point out the secret was typed in a password field,
-   never displayed anywhere, and that the chain only stores a commitment:
-   highlight the *🔐 Proved without revealing your input* label and the
-   registry showing only hashes (1:30–2:00).
-
 ## Run Tests
 
 ```bash
@@ -219,6 +200,43 @@ The unit suite runs the compiled contract on the local compact-runtime with
 mock proofs — no network or proof server needed — and covers circuit logic,
 the full credential lifecycle (including the wrong-secret rotation guard),
 and that private inputs are never exposed in public state.
+
+## CI/CD
+
+The pipeline (`.github/workflows/ci.yml`) runs on every **push to `main`**
+and on every **pull request**:
+
+1. **Checkout** the repository.
+2. **Install Node.js v22** (with npm caching).
+3. **`npm ci`** — reproducible dependency install.
+4. **Install the Compact toolchain** (pinned launcher + `0.31.1` compiler).
+5. **`npm run compile`** — compile the `.compact` contract to
+   `contracts/managed/`.
+6. **`npx tsc --noEmit`** — typecheck.
+7. **`npm test`** — the 14-test suite (circuit logic, state transitions,
+   privacy).
+
+A green badge at the top of this file means the contract compiles and every
+circuit/state/privacy test passes on the exact commit you are viewing.
+
+## Product Proposal
+
+See [PROPOSAL.md](PROPOSAL.md).
+
+## Demo Video
+
+**Draft demo (auto-recorded, full dApp flow): [`docs/demo/conficred-demo.mp4`](docs/demo/conficred-demo.mp4)**
+
+<!-- PLACEHOLDER — replace/add the link after recording the final video with real Lace (see docs/demo/WALLET-SCENES.md) -->
+
+**Recording checklist (1 minute):**
+
+1. **Full dApp flow** — connect Lace (address appears) → type a masked
+   holder secret → *Register credential* → loading state during local
+   proof generation → on-chain result with tx id (0:00–0:35).
+2. **Terminal showing test output** — `npm test` with all 14 tests passing
+   (0:35–0:50).
+3. **README showing the CI badge as green** (0:50–1:00).
 
 ## Initial Idea
 

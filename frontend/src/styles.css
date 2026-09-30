@@ -121,3 +121,29 @@ hr { border: none; border-top: 1px solid #30363d; margin: 18px 0; }
 .registry li { margin: 2px 0; word-break: break-all; }
 
 footer { text-align: center; margin-top: 8px; }
+
+/* ── Mobile responsiveness ─────────────────────────────────────────────── */
+
+/* Comfortable touch targets on coarse pointers (phones). */
+@media (pointer: coarse) {
+  .btn { padding: 12px 18px; }
+  .field input { padding: 12px; font-size: 1rem; } /* >=16px prevents iOS zoom-on-focus */
+}
+
+@media (max-width: 640px) {
+  .app { padding: 16px 12px 40px; gap: 12px; }
+
+  .card { padding: 14px; border-radius: 10px; }
+
+  header h1 { font-size: 1.5rem; }
+  header .contract-addr { font-size: 0.72rem; }
+
+  h2 { font-size: 1.05rem; }
+
+  .btn { width: 100%; } /* full-width primary actions on small screens */
+  .btn.small { width: auto; }
+
+  .progress { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+  #demo-caption { font-size: 16px !important; padding: 10px 14px !important; }
+}

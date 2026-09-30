@@ -19,8 +19,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Compact compiler
-        run: npm install -g @midnight-ntwrk/compact-compiler && compact --version
+      # The Compact compiler is a standalone binary released on GitHub
+      # (there is no npm package). Pin the same version the project is
+      # built against (0.5.3) and install it onto PATH.
+      - name: Install Compact compiler 0.5.3
+        run: |
+          curl -sL -o /tmp/compact.tar.xz \
+            https://github.com/midnightntwrk/compact/releases/download/compact-v0.5.3/compact-x86_64-unknown-linux-musl.tar.xz
+          tar -xJf /tmp/compact.tar.xz -C /tmp
+          sudo mv /tmp/compact-x86_64-unknown-linux-musl/compact /usr/local/bin/compact
+          sudo chmod +x /usr/local/bin/compact
+          compact --version
 
       - name: Compile contract
         run: npm run compile
@@ -28,5 +37,5 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
-      - name: Unit tests (circuit logic, state transitions, privacy)
+      - name: Unit tests (circuit logic, lifecycle, privacy)
         run: npm test

@@ -71,8 +71,11 @@ footprint, can learn the holder's secret or forge ownership of a credential.
 - Node.js **v22 or newer** (`node --version`)
 - Docker with Compose v2, running
 - The **Compact compiler** (`compact --version` — this project used `0.5.3`):
+  install the standalone binary from the
+  [official releases](https://github.com/midnightntwrk/compact/releases) or via
+  the bundled installer:
   ```bash
-  npm install -g @midnight-ntwrk/compact-compiler
+  curl -sSL https://github.com/midnightntwrk/compact/releases/download/compact-v0.5.3/compact-installer.sh | sh
   ```
 - For public networks: tNIGHT from the
   [preview](https://midnight-tmnight-preview.nethermind.dev) or

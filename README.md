@@ -6,6 +6,14 @@
 > tamper-proof commitments to credentials; holders prove ownership without
 > ever revealing their secret.
 
+## Live Demo
+
+<!-- PASTE LIVE URL AFTER DEPLOYING FRONTEND -->
+
+Once deployed, open the URL, connect the **Lace** wallet extension (Midnight
+preprod network), and register a credential — the proof is generated locally
+in your browser and only the commitment of your secret lands on-chain.
+
 ## Contract Address
 
 | Network  | Address |
@@ -27,7 +35,14 @@ Step-3 hello-world deploy used for toolchain bring-up was
 
 ## What This Does
 
-ConfiCred is a privacy-preserving credential registry with a full lifecycle.
+ConfiCred is a privacy-preserving credential registry **dApp** with a full
+lifecycle. The frontend (`frontend/`, React + Vite) connects the Lace wallet,
+calls the `registerCredential` circuit with **proof generation in the
+browser**, submits the transaction on-chain through the wallet, and reads the
+public registry state back from the indexer. The contract underneath supports
+**rotation** (proving knowledge of the current secret — ZK access control),
+**suspension / reinstatement** (temporary invalidation), and **terminal
+revocation** with a public counter.
 An issuer enrolls a credential by submitting the holder's *secret* (a 32-byte
 value known only to the holder) through a ZK circuit; the chain stores only a
 hash commitment under a publicly disclosed credential ID. The registry
@@ -60,16 +75,39 @@ footprint, can learn the holder's secret or forge ownership of a credential.
     secret fails the transaction) and the hash of the replacement — revealing
     neither.
 
+## Privacy Claim
+
+**What an on-chain observer sees:** the credential ID (deliberately
+disclosed), the *commitment* — a hash of the holder's secret — the lifecycle
+counters, and the status flags. Transaction payloads contain only these
+public values plus ZK proofs.
+
+**What an on-chain observer cannot see:** the holder's secret itself — it is
+a circuit witness consumed entirely inside the locally generated proof. It is
+typed into the dApp as a password field, never rendered back, never logged,
+never stored, and never transmitted: in the UI it exists only in component
+memory (cleared immediately after use), and on-chain only its hash is
+visible. An observer cannot recover the secret from the commitment, cannot
+forge ownership of a credential, and cannot link two credentials registered
+with different secrets to the same holder. The unit test suite asserts the
+hiding property mechanically: it serializes the entire public ledger state
+and asserts the secret (string and hex) appears nowhere in it.
+
 ## Tech Stack
 
-- **Midnight Network** (local devnet, preview & preprod testnets)
+- **Midnight Network** (preprod; local devnet for development)
 - **Compact** — Midnight's zero-knowledge contract language (compiler `0.5.3`)
-- **Node.js** v22+ (tested on v24), **TypeScript**, **vitest**
-- **Docker + Compose** — local node, indexer, and proof-server
-- `@midnight-ntwrk/*` SDK (midnight-js 4.1.1, wallet-sdk 1.2.0, ledger-v8)
+- **Midnight.js SDK** (`@midnight-ntwrk/midnight-js` 4.1.1) + **DApp
+  Connector API** (`@midnight-ntwrk/dapp-connector-api` 4.0.1)
+- **React 18 + Vite 5 + TypeScript** (frontend in `frontend/`)
+- **Lace wallet** browser extension (Midnight preprod network)
+- **Node.js** v22+ (tested on v24), **vitest**, **Docker + Compose**
 
 ## Prerequisites
 
+- **Lace wallet** browser extension, set to the **Midnight preprod** network
+  ([lace.io](https://lace.io/)), funded with tNIGHT from the
+  [preprod faucet](https://midnight-tmnight-preprod.nethermind.dev)
 - Node.js **v22 or newer** (`node --version`)
 - Docker with Compose v2, running
 - The **Compact toolchain**: the `compact` launcher ships as a standalone
@@ -81,14 +119,13 @@ footprint, can learn the holder's secret or forge ownership of a credential.
     | tar -xJ -C /tmp && sudo mv /tmp/compact-x86_64-unknown-linux-musl/compact /usr/local/bin/
   compact update 0.31.1
   ```
-- For public networks: tNIGHT from the
+- For contract deploys: tNIGHT from the
   [preview](https://midnight-tmnight-preview.nethermind.dev) or
   [preprod](https://midnight-tmnight-preprod.nethermind.dev) faucet
 
 ## Setup
 
-Requirements: Node 22+, Docker (with Compose v2), and the Compact compiler
-(this project was built against `compact 0.5.3`).
+Requirements: Node 22+, Docker (with Compose v2), and the Compact toolchain.
 
 > **On Windows:** the npm scripts in this project run natively (PowerShell or cmd.exe), but the Compact compiler publishes no native Windows binary — so `npm run compile`, and `npm run setup` which calls it, need to run inside WSL. See Midnight's [installation docs](https://docs.midnight.network/getting-started/installation).
 
@@ -105,6 +142,45 @@ npm run test:e2e
 3. `npm run deploy` — on local devnet: derives the genesis-seed wallet (NIGHT pre-minted), registers UTXOs for DUST generation, deploys the contract, writes `.midnight-state.json`. On `preview`/`preprod`: generates a BIP-39 wallet on first use, waits for faucet funding, then deploys.
 
 `npm run test:e2e` reconnects to the deployed contract and reads its ledger state. Exits 0 if the contract is live and indexable.
+
+## Run Locally (frontend)
+
+```bash
+git clone https://github.com/DevDDSmart/ConfiCred.git
+cd ConfiCred
+npm install            # contract toolchain + backend scripts
+cd frontend
+npm install            # dApp dependencies
+cp .env.example .env   # optional: override indexer / proof-server URLs
+npm run dev            # http://localhost:5173
+```
+
+Then: install **Lace**, switch it to the **Midnight preprod** network, open
+http://localhost:5173, click **Connect Lace**, and register a credential.
+For a production build: `npm run build && npm run preview`.
+
+Deployment to Vercel: see [DEPLOY.md](DEPLOY.md) (`cd frontend && vercel
+--prod --yes`); `vercel.json` ships SPA rewrites and caching for the ZK
+artifacts.
+
+## Demo Video
+
+<!-- PLACEHOLDER — add the link after recording -->
+
+**Recording checklist (under 2 minutes):**
+
+1. **Connect Lace** — show the wallet address appearing on screen after
+   connecting (0:00–0:20).
+2. **Call the circuit** — type a holder secret (masked), click *Register
+   credential*, and show the **loading state** during local proof generation
+   (0:20–1:00).
+3. **On-chain result** — show the tx id / block height in the success panel,
+   then refresh the *On-chain registry* read-back showing `totalCredentials`
+   increment (1:00–1:30).
+4. **Privacy point** — point out the secret was typed in a password field,
+   never displayed anywhere, and that the chain only stores a commitment:
+   highlight the *🔐 Proved without revealing your input* label and the
+   registry showing only hashes (1:30–2:00).
 
 ## Run Tests
 
@@ -363,6 +439,13 @@ ConfiCred/
 ├── contracts/
 │   └── credential-registry.compact  # Compact source
 ├── contracts/managed/          # compiler output: circuits + proving keys (gitignored)
+├── frontend/                   # Level 2 dApp (React + Vite + TypeScript)
+│   ├── src/components/         #   WalletConnect.tsx, CircuitCall.tsx
+│   ├── src/hooks/              #   useMidnight.ts (connector + providers)
+│   ├── src/contract/           #   compiled artifact + registry wiring
+│   ├── public/zk/              #   prover/verifier keys + ZKIR (served at /zk)
+│   ├── vercel.json             #   SPA rewrites + artifact caching
+│   └── vite.config.ts
 ├── scripts/
 │   ├── e2e-check.ts            # smoke + read-back
 │   └── dust-register.ts        # standalone DUST registration w/ retries
@@ -377,6 +460,7 @@ ConfiCred/
 │   └── credential-registry.test.ts  # circuit / state / privacy tests
 ├── .github/workflows/ci.yml    # CI: compile + typecheck + tests
 ├── docker-compose.yml          # node + indexer + proof-server
+├── DEPLOY.md                   # frontend deployment guide
 ├── .midnight-state.json        # written by deploy (gitignored)
 ├── .midnight-wallet-state/     # serialized sync state per network (gitignored)
 ├── package.json

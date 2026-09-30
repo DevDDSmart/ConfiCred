@@ -35,11 +35,11 @@ export const CIRCUITS = [
 
 export type CircuitName = (typeof CIRCUITS)[number];
 
-/** Public preprod endpoints used by the dApp. */
+/** Public preprod endpoints used by the dApp. Override via Vite env vars. */
 export const NETWORK = {
-  indexer: 'https://indexer.preprod.midnight.network/api/v4/graphql',
-  indexerWS: 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws',
-  proofServer: 'https://proof-server.preprod.midnight.network',
+  indexer: import.meta.env.VITE_INDEXER_URL ?? 'https://indexer.preprod.midnight.network/api/v4/graphql',
+  indexerWS: import.meta.env.VITE_INDEXER_WS_URL ?? 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws',
+  proofServer: import.meta.env.VITE_PROOF_SERVER_URL ?? 'https://proof-server.preprod.midnight.network',
   networkId: 'preprod' as const,
 };
 

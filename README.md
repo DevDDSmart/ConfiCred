@@ -149,6 +149,20 @@ Re-run `npm run setup -- --network preview` once the funds land.
 > network: the wallet's synced state is cached in `.midnight-wallet-state/`
 > and every later run resumes from it in seconds.
 
+### Troubleshooting
+
+- **`Invalid Transaction: Custom error: 171`** = `OutOfDustValidityWindow`
+  (per the node's ledger error table). The transaction's dust-validity window
+  was anchored to a stale sync tip. Re-run — the wallet re-syncs and re-anchors
+  at the current tip (`npm run dust-register` retries this automatically).
+- **`Custom error: 170`** = `InvalidDustSpendProof`; **173** =
+  `InsufficientDustForRegistrationFee`; **192** = `InputsSignaturesLengthMismatch`
+  (never double-sign a dust-registration recipe).
+- **`expected instance of StateValue`** when calling circuits: two wasm
+  instances of `@midnight-ntwrk/onchain-runtime-v3` in `node_modules` break
+  `instanceof` checks between the compiled contract and the SDK. `package.json`
+  pins a single shared copy via a root dependency + `overrides` — don't remove it.
+
 ### Environment overrides
 
 These env vars override the active network's config (no per-network
@@ -202,6 +216,7 @@ generated state.
 | `npm run cli`           | Interactive CLI to call circuits on the deployed contract.     |
 | `npm run check-balance` | Print the wallet's NIGHT and DUST balances.                    |
 | `npm run dust-register` | Register NIGHT UTXOs for DUST generation (with retries) — standalone, for when deploy's inline registration was rejected. |
+| `npm run verify:circuits` | Exercise both circuits (register + revoke) against the deployed contract and verify each state transition via the indexer. |
 | `npm run test:e2e`      | Smoke + read-back check against the deployed contract.         |
 | `npm run clean`         | Remove `contracts/managed/`, `.midnight-state.json`, and `.midnight-wallet-state/`. |
 | `npm run proof-server:start` / `:stop` | Compose lifecycle for just the proof-server service. |
